@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -9,10 +9,16 @@ import {
   TextInput,
   TouchableOpacity,
   Linking,
+  Image,
   Modal,
+  ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import LinearGradient from 'react-native-linear-gradient';
+import {AuthContext, AuthProvider} from './AuthContext';
+import axios from 'axios';
 
 const Home = route => {
   const [data, setData] = useState([]);
@@ -21,14 +27,39 @@ const Home = route => {
   const [firmName, setFirmName] = useState('');
   const [productName, setProductName] = useState('');
   const [selectedItem, setSelectedItem] = useState('');
+  const [profileImage, setProfileImage] = useState(null);
 
-  const [user, setUser] = useState(''); // Assuming login status (set this properly)
+  const {user, userData} = useContext(AuthContext);
 
   const navigation = useNavigation();
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const fetchProfileImage = async () => {
+      if (!userData?.id) return;
+
+      try {
+        const response = await axios.get(
+          `https://signpostphonebook.in/image_upload_for_new_database.php?id=${userData.id}`,
+        );
+
+        if (response.data.success) {
+          const imageUrl = response.data.imageUrl;
+          const fullUrl = imageUrl.startsWith('http')
+            ? imageUrl
+            : `https://signpostphonebook.in/${imageUrl}`;
+          setProfileImage(fullUrl + `?t=${new Date().getTime()}`); // Prevent caching
+        }
+      } catch (error) {
+        console.error('Error fetching profile image:', error);
+      }
+    };
+
+    fetchProfileImage();
+  }, [userData?.id]);
 
   const fetchData = async () => {
     try {
@@ -68,14 +99,13 @@ const Home = route => {
 
   const renderItem = ({item}) => {
     //................................................................................................................
-    // Dial button click panna nadakura function
+    // Dial button and more button  click panna nadakura function
 
     const handleMorePress = item => {
-      if (user && user !== '') {
-        // Ensure user is properly set
+      if (user) {
         navigation.navigate('Details', {selectedItem: item});
       } else {
-        Alert.alert('Login Required', 'You need to log in to view details.', [
+        Alert.alert('Login Required', 'You need to log in to make a call.', [
           {text: 'OK', onPress: () => navigation.navigate('Login')},
         ]);
       }
@@ -101,9 +131,6 @@ const Home = route => {
         })
         .catch(err => console.error('An error occurred', err));
     };
-
-
- 
 
     return (
       <View style={styles.card}>
@@ -148,42 +175,153 @@ const Home = route => {
 
   if (loading) {
     return (
-      <ActivityIndicator size="large" color="royalblue" style={styles.loader} />
+      <ActivityIndicator
+        size="large"
+        color="darkyellow"
+        style={styles.loader}
+      />
     );
   }
 
+  //colors={['#FFD700', '#FFB800']}
+
   return (
-    <View style={{flex: 1}}>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Firm/Person"
-          value={firmName}
-          onChangeText={text => {
-            setFirmName(text);
-            setProductName('');
-          }}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Product"
-          value={productName}
-          onChangeText={text => {
-            setProductName(text);
-            setFirmName('');
-          }}
+    <View style={styles.container}>
+      {/* HEADER */}
+      <LinearGradient colors={['#FF69B4', '#FFFFFF']} style={styles.header}>
+        <View style={styles.headerTop}>
+          <Text style={styles.welcomeText}>
+            Welcome {userData.businessname || userData.person || 'Guest'}
+          </Text>
+          <View style={styles.iconGroup}>
+            <MaterialIcons name="notifications-none" size={24} color="#000" />
+            <TouchableOpacity
+              style={styles.profileIconContainer}
+              onPress={() => {
+                if (userData && userData.id) {
+                  navigation.navigate('Profile'); // Navigate to Profile if logged in
+                } else {
+                  navigation.navigate('Login'); // Navigate to Login if not logged in
+                }
+              }}>
+              {userData?.id && profileImage ? (
+                <Image
+                  source={{uri: profileImage}}
+                  style={styles.profileIcon}
+                  resizeMode="cover"
+                />
+              ) : (
+                <MaterialIcons name="person" size={28} color="black" />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* SEARCH INPUT */}
+        <View style={styles.searchBar}>
+          <TextInput
+            placeholder="Search firm name..."
+            style={styles.searchInput}
+            value={firmName}
+            onChangeText={setFirmName}
+          />
+          <TextInput
+            placeholder="Search product..."
+            style={styles.searchInput}
+            value={productName}
+            onChangeText={setProductName}
+          />
+        </View>
+
+        {/* HEADER CONTENT */}
+        <View>
+          <Text style={styles.headercontent}>Find Anyone, Anytime</Text>
+          <Text style={styles.headersub}>
+            Discover your customers near by you, Attract them with your offers &
+            Discounts.
+          </Text>
+        </View>
+      </LinearGradient>
+
+      {/* FLATLIST CONTAINER */}
+      <View style={styles.listContainer}>
+        <FlatList
+          data={filteredData}
+          renderItem={renderItem}
+          keyExtractor={item => item.id.toString()}
+          contentContainerStyle={{flexGrow: 1}}
+          showsVerticalScrollIndicator={false}
         />
       </View>
-      <FlatList
-        data={filteredData}
-        renderItem={renderItem}
-        keyExtractor={item => item.id.toString()}
-      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  //Linear Gradient kulla irrukura items ku styles
+
+  header: {
+    padding: 20,
+    paddingTop: 40,
+    paddingVertical: 30,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  welcomeText: {
+    fontSize: 18,
+    color: 'black',
+    fontWeight: 'bold',
+  },
+  iconGroup: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 30,
+  },
+  searchInput: {
+    flex: 1,
+    backgroundColor: '#FFF',
+    padding: 10,
+    borderRadius: 5,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  headercontent: {
+    fontSize: 22,
+    textAlign: 'center',
+    fontWeight: 'bold',
+    marginTop: 30,
+  },
+  headersub: {
+    textAlign: 'center',
+    marginTop: 5,
+  },
+
+  //Profile icon ku styles
+
+  profileIconContainer: {
+    width: 30, 
+    height: 30, 
+    borderRadius: 50, 
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0', // Light gray background for icon style
+  },
+  profileIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 90, // Circular profile image
+    zIndex:1,
+  },
   card: {
     flexDirection: 'row',
     justifyContent: 'space-between',

@@ -1,58 +1,87 @@
-import React, { useContext, useState } from "react";
+import React, {useContext, useState} from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-} from "react-native";
-import { AuthContext } from "./AuthContext";
+  Image,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import {AuthContext} from './AuthContext';
 
-const Login = ({ navigation }) => {
-  const { Login } = useContext(AuthContext);
-  const [mobileno, setMobileno] = useState("");
-  const [password, setPassword] = useState("");
+const Login = ({navigation}) => {
+  const {Login} = useContext(AuthContext);
+  const [mobileno, setMobileno] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleLogin = () => {
     Login(mobileno, password, navigation);
-    setMobileno("");
-    setPassword("");
+    setMobileno('');
+    setPassword('');
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Signpost Phone Book</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Mobile Number"
-        keyboardType="phone-pad"
-        placeholderTextColor="#999"
-        maxLength={10}
-        value={mobileno}
-        onChangeText={setMobileno}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        placeholderTextColor="#999"
-        onChangeText={setPassword}
-      />
+      {/* Gradient Background Only at the Top */}
+      <LinearGradient colors={['#FF69B4', '#FFFFFF']} style={styles.topSection}>
+        <Image
+          source={require('../src/assets/images/comaany-logo.png')} // Replace with your logo
+          style={styles.logo}
+          resizeMode="contain"
+        />
 
-      <TouchableOpacity>
-        <Text style={styles.forgotPassword}>
-          Note: Your Password is Signpost
+        <Text style={styles.cpyname}>Signpost Phone Book</Text>
+      </LinearGradient>
+
+      {/* White Card Covering Bottom Section */}
+      <View style={styles.card}>
+        <Text style={styles.header}>
+          <Text style={styles.loginText}>Log in</Text> to your account.
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <Text style={styles.loginText}>Login</Text>
-      </TouchableOpacity>
-      <View style={styles.signupContainer}>
-        <Text style={styles.signupText}>Don’t have an account? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
-          <Text style={styles.signupLink}>Sign up</Text>
+
+        <View style={styles.inputContainer}>
+          <Icon name="phone" size={20} color="#555" style={styles.icon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Mobile Number"
+            keyboardType="phone-pad"
+            placeholderTextColor="#999"
+            maxLength={10}
+            value={mobileno}
+            onChangeText={setMobileno}
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Icon name="lock" size={20} color="#555" style={styles.icon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            secureTextEntry
+            placeholderTextColor="#999"
+            value={password}
+            onChangeText={setPassword}
+          />
+        </View>
+
+        <TouchableOpacity>
+          <Text style={styles.forgotPassword}>
+            Note: Your Password is Signpost
+          </Text>
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          <Text style={styles.loginButtonText}>Login</Text>
+        </TouchableOpacity>
+
+        <View style={styles.signupContainer}>
+          <Text style={styles.signupText}>Don’t have an account? </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+            <Text style={styles.signupLink}>Sign up</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -61,58 +90,91 @@ const Login = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#FFFFFF',
+  },
+  topSection: {
+    height: '35%', // Covers the top area
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+  },
+  logo: {
+    width: 150,
+    height: 50,
+  },
+
+  cpyname:{
+    fontSize: 25,
+    fontWeight: "bold",
+    marginTop: 10,
+  },
+  card: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
     padding: 20,
-    backgroundColor: "#f9f9f9",
+    marginTop: -20, // Pull the card slightly up for better design
+    alignItems: 'center',
+    elevation: 5,
   },
   header: {
-    fontSize: 32,
-    fontWeight: "bold",
-    marginBottom: 20,
-    color: "#6a0dad",
-    textAlign: "center",
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#333',
+    textAlign: 'center',
   },
-  input: {
-    width: "100%",
-    height: 50,
-    borderWidth: 1,
-    borderColor: "#ccc",
+  loginText: {
+    color: '#FF69B4', // Pink text
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    backgroundColor: '#f1f1f1',
     borderRadius: 8,
     paddingHorizontal: 10,
-    fontSize: 16,
     marginBottom: 15,
-    backgroundColor: "#fff",
+  },
+  icon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    height: 50,
+    fontSize: 16,
   },
   forgotPassword: {
-    color: "#888",
-    alignSelf: "flex-end",
+    color: '#FF69B4',
+    alignSelf: 'flex-end',
     marginBottom: 20,
   },
   loginButton: {
-    width: "100%",
+    width: '100%',
     height: 50,
-    backgroundColor: "#6a0dad",
+    backgroundColor: '#FF69B4',
     borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 20,
   },
-  loginText: {
-    color: "#fff",
-    fontWeight: "bold",
+  loginButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
     fontSize: 16,
   },
   signupContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   signupText: {
-    color: "#888",
+    color: '#888',
   },
   signupLink: {
-    color: "#6a0dad",
-    fontWeight: "bold",
+    color: '#FF69B4',
+    fontWeight: 'bold',
   },
 });
 

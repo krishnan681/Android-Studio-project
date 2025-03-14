@@ -1,0 +1,2530 @@
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  TextInput,
+  TouchableOpacity,
+  Linking,
+  Modal,
+  ScrollView,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
+import {useNavigation} from '@react-navigation/native';
+
+const Home = route => {
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [firmName, setFirmName] = useState('');
+  const [productName, setProductName] = useState('');
+  const [selectedItem, setSelectedItem] = useState('');
+
+  const [user, setUser] = useState(''); // Assuming login status (set this properly)
+
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch(
+        'https://signpostphonebook.in/client_fetch_for_new_database.php',
+      );
+      if (!response.ok)
+        throw new Error(`HTTP Error! Status: ${response.status}`);
+      const jsonResponse = await response.json();
+      if (Array.isArray(jsonResponse)) {
+        const sortedData = jsonResponse.sort((a, b) => b.id - a.id);
+        setData(sortedData);
+        setFilteredData(sortedData);
+      } else {
+        Alert.alert('Error', 'Unexpected response from server.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load data: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let filtered = data;
+    if (firmName) {
+      filtered = data.filter(item =>
+        item.businessname?.toLowerCase().includes(firmName.toLowerCase()),
+      );
+    } else if (productName) {
+      filtered = data.filter(item =>
+        item.product?.toLowerCase().includes(productName.toLowerCase()),
+      );
+    }
+    setFilteredData(filtered);
+  }, [firmName, productName, data]);
+
+  const renderItem = ({item}) => {
+    //................................................................................................................
+    // Dial button and more button  click panna nadakura function
+
+    const handleMorePress = item => {
+      navigation.navigate('Details', { selectedItem: item });
+    };
+    
+
+    const OpenDialpad = dialedNumber => {
+      if (!user || user === '') {
+        Alert.alert('Login Required', 'You need to log in to make a call.', [
+          {text: 'OK', onPress: () => navigation.navigate('Login')},
+        ]);
+        return;
+      }
+
+      const phoneUrl = `tel:${dialedNumber}`;
+
+      Linking.canOpenURL(phoneUrl)
+        .then(supported => {
+          if (supported) {
+            Linking.openURL(phoneUrl);
+          } else {
+            Alert.alert('Error', 'Dial pad is not supported on this device.');
+          }
+        })
+        .catch(err => console.error('An error occurred', err));
+    };
+
+
+ 
+
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardRow}>
+          <View style={styles.textContainer}>
+            <Text style={styles.businessName}>
+              {item.businessname || item.person || 'Name not found'}
+            </Text>
+            {productName && (
+              <Text style={styles.productName}>{item.product}</Text>
+            )}
+            {!productName && item.city && item.pincode && (
+              <Text style={styles.locationText}>
+                {item.city}, {item.pincode}
+              </Text>
+            )}
+          </View>
+
+          <View style={styles.rightContainer}>
+            {item.mobileno && (
+              <Text style={styles.mobile}>
+                {item.mobileno.slice(0, 5)}xxxxx
+              </Text>
+            )}
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => OpenDialpad(item.mobileno)}>
+                <Text style={styles.buttonText}>Dial</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.detailButton}
+                onPress={() => handleMorePress(item)}>
+                <Text style={styles.buttonText}>More</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  if (loading) {
+    return (
+      <ActivityIndicator size="large" color="royalblue" style={styles.loader} />
+    );
+  }
+
+  return (
+    <View style={{flex: 1}}>
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Firm/Person"
+          value={firmName}
+          onChangeText={text => {
+            setFirmName(text);
+            setProductName('');
+          }}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Product"
+          value={productName}
+          onChangeText={text => {
+            setProductName(text);
+            setFirmName('');
+          }}
+        />
+      </View>
+      <FlatList
+        data={filteredData}
+        renderItem={renderItem}
+        keyExtractor={item => item.id.toString()}
+      />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  card: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: {width: 0, height: 3},
+    elevation: 4,
+    margin: 10,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  textContainer: {
+    flex: 1,
+  },
+  rightContainer: {
+    alignItems: 'flex-end',
+  },
+  businessName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#6A0DAD',
+  },
+  locationText: {
+    fontSize: 14,
+    color: 'gray',
+    marginTop: 5,
+  },
+  mobile: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 10,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  button: {
+    backgroundColor: '#6A0DAD',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    marginRight: 5,
+  },
+  detailButton: {
+    backgroundColor: '#6A0DAD',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  businessName: {fontSize: 18, fontWeight: 'bold'},
+  locationText: {fontSize: 14, color: 'gray'},
+  mobile: {fontSize: 16, color: '#333'},
+  button: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  detailButton: {
+    backgroundColor: '#28a745',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  buttonText: {color: '#fff', textAlign: 'center'},
+  loader: {flex: 1, justifyContent: 'center', alignItems: 'center'},
+  inputContainer: {flexDirection: 'row', padding: 10},
+  input: {flex: 1, borderWidth: 1, borderRadius: 5, padding: 10, margin: 5},
+});
+
+export default Home;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+edited ....................................................................................
+
+
+import React, {useState, useEffect, useContext} from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  TextInput,
+  TouchableOpacity,
+  Linking,
+  ScrollView,
+  Image,
+} from 'react-native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import LinearGradient from 'react-native-linear-gradient';
+import {useNavigation} from '@react-navigation/native';
+import {AuthContext} from './AuthContext';
+
+const Home = ({route}) => {
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [firmName, setFirmName] = useState('');
+  const [productName, setProductName] = useState('');
+  const [user, setUser] = useState(''); // Assuming login status (set this properly)
+  const {userData, setUserData} = useContext(AuthContext);
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch(
+        'https://signpostphonebook.in/client_fetch_for_new_database.php',
+      );
+      if (!response.ok)
+        throw new Error(`HTTP Error! Status: ${response.status}`);
+      const jsonResponse = await response.json();
+      if (Array.isArray(jsonResponse)) {
+        const sortedData = jsonResponse.sort((a, b) => b.id - a.id);
+        setData(sortedData);
+        setFilteredData(sortedData);
+      } else {
+        Alert.alert('Error', 'Unexpected response from server.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load data: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let filtered = data;
+    if (firmName) {
+      filtered = data.filter(item =>
+        item.businessname?.toLowerCase().includes(firmName.toLowerCase()),
+      );
+    } else if (productName) {
+      filtered = data.filter(item =>
+        item.product?.toLowerCase().includes(productName.toLowerCase()),
+      );
+    }
+    setFilteredData(filtered);
+  }, [firmName, productName, data]);
+
+  const handleMorePress = item => {
+    navigation.navigate('Details', {selectedItem: item});
+  };
+
+  const OpenDialpad = dialedNumber => {
+    if (!user) {
+      Alert.alert('Login Required', 'You need to log in to make a call.', [
+        {text: 'OK', onPress: () => navigation.navigate('Login')},
+      ]);
+      return;
+    }
+
+    const phoneUrl = `tel:${dialedNumber}`;
+    Linking.canOpenURL(phoneUrl)
+      .then(supported => {
+        if (supported) {
+          Linking.openURL(phoneUrl);
+        } else {
+          Alert.alert('Error', 'Dial pad is not supported on this device.');
+        }
+      })
+      .catch(err => console.error('An error occurred', err));
+  };
+
+  const renderItem = ({item}) => {
+    //................................................................................................................
+    // Dial button and more button  click panna nadakura function
+
+    const handleMorePress = item => {
+      navigation.navigate('Details', { selectedItem: item });
+    };
+    
+
+    const OpenDialpad = dialedNumber => {
+      if (!user || user === '') {
+        Alert.alert('Login Required', 'You need to log in to make a call.', [
+          {text: 'OK', onPress: () => navigation.navigate('Login')},
+        ]);
+        return;
+      }
+
+      const phoneUrl = `tel:${dialedNumber}`;
+
+      Linking.canOpenURL(phoneUrl)
+        .then(supported => {
+          if (supported) {
+            Linking.openURL(phoneUrl);
+          } else {
+            Alert.alert('Error', 'Dial pad is not supported on this device.');
+          }
+        })
+        .catch(err => console.error('An error occurred', err));
+    };
+
+
+ 
+
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardRow}>
+          <View style={styles.textContainer}>
+            <Text style={styles.businessName}>
+              {item.businessname || item.person || 'Name not found'}
+            </Text>
+            {productName && (
+              <Text style={styles.productName}>{item.product}</Text>
+            )}
+            {!productName && item.city && item.pincode && (
+              <Text style={styles.locationText}>
+                {item.city}, {item.pincode}
+              </Text>
+            )}
+          </View>
+
+          <View style={styles.rightContainer}>
+            {item.mobileno && (
+              <Text style={styles.mobile}>
+                {item.mobileno.slice(0, 5)}xxxxx
+              </Text>
+            )}
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => OpenDialpad(item.mobileno)}>
+                <Text style={styles.buttonText}>Dial</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.detailButton}
+                onPress={() => handleMorePress(item)}>
+                <Text style={styles.buttonText}>More</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  if (loading) {
+    return (
+      <ActivityIndicator size="large" color="royalblue" style={styles.loader} />
+    );
+  }
+
+
+  return (
+    <ScrollView style={{flex: 1, backgroundColor: '#fff'}}>
+      <LinearGradient colors={['#FFD700', '#FFB800']} style={styles.header}>
+        <View style={styles.headerTop}>
+          <Text style={styles.welcomeText}>Welcome {userData.businessname || userData.person || ''}</Text>
+          <View style={styles.iconGroup}>
+            <MaterialIcons name="notifications-none" size={24} color="#000" />
+            <TouchableOpacity onPress={() => setIsFavorite(!isFavorite)}>
+              <MaterialIcons
+                name={isFavorite ? 'favorite' : 'favorite-border'}
+                size={24}
+                color={isFavorite ? 'red' : '#000'}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.searchBar}>
+          <TextInput
+            placeholder="Search firm name..."
+            style={styles.searchInput}
+            value={firmName}
+            onChangeText={setFirmName}
+          />
+          <TextInput
+            placeholder="Search product..."
+            style={styles.searchInput}
+            value={productName}
+            onChangeText={setProductName}
+          />
+        </View>
+
+        <View>
+          <Text style={styles.headercontent}>Find Anyone, Anytime</Text>
+          <Text>Discover your customers near by you, Attract them with your offers & Discounts.</Text>
+        </View>
+
+
+      </LinearGradient>
+ 
+
+
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#FFD700" />
+      ) : (
+        <FlatList
+          data={filteredData}
+          keyExtractor={item => item.id.toString()}
+          renderItem={renderItem}
+          contentContainerStyle={{padding: 10}}
+        />
+      )}
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  header: {padding: 20, paddingTop: 40},
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  welcomeText: {fontSize: 18, color: '#444'},
+  iconGroup: {flexDirection: 'row', gap: 10},
+
+  searchBar: {flexDirection: 'row', alignItems: 'center', marginTop: 10},
+  searchInput: {
+    flex: 1,
+    backgroundColor: '#FFF',
+    padding: 10,
+    borderRadius: 5,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+
+  headercontent: {
+    
+    alignItems:'center',
+    marginTop:10,
+  },
+
+  textContainer: {alignItems: 'center', marginTop: 10},
+  businessName: {fontSize: 18, fontWeight: 'bold', color: '#000'},
+  productName: {fontSize: 16, color: '#555'},
+  locationText: {fontSize: 14, color: '#777'},
+});
+
+export default Home;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+bottom tabs
+
+
+
+import React, { useContext } from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { StyleSheet } from 'react-native';
+import { AuthContext } from './AuthContext';
+
+// Import Screens
+import Home from './Home';
+import Profile from './Profile';
+import Settings from './Settings';
+import CategorywisePromotion from './CategorywisePromotion';
+import NearbyPromotion from './NearbyPromotion';
+
+const Tab = createBottomTabNavigator();
+
+const BottomTabs = () => {
+  const { user } = useContext(AuthContext);
+
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ color, size }) => {
+          let iconName;
+
+          switch (route.name) {
+            case 'Home':
+              iconName = 'home';
+              break;
+            case 'Profile':
+              iconName = 'user';
+              break;
+            case 'Settings':
+              iconName = 'cog';
+              break;
+            case 'CategorywisePromotion':
+              iconName = 'th-large';
+              break;
+            case 'NearbyPromotion':
+              iconName = 'map-marker';
+              break;
+            default:
+              iconName = 'question-circle';
+          }
+
+          return <FontAwesome name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: 'black',
+        tabBarInactiveTintColor: 'gray',
+        tabBarStyle: styles.tabBarStyle,
+      })}
+    >
+      <Tab.Screen name="Home" component={Home} />
+      {user !== '' && <Tab.Screen name="Profile" component={Profile} />}
+      <Tab.Screen name="CategorywisePromotion" component={CategorywisePromotion} />
+      <Tab.Screen name="NearbyPromotion" component={NearbyPromotion} />
+      <Tab.Screen name="Settings" component={Settings} />
+    </Tab.Navigator>
+  );
+};
+
+const styles = StyleSheet.create({
+  tabBarStyle: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: 70,
+  },
+});
+
+export default BottomTabs;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+edited ....................................................................................
+
+
+
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  TextInput,
+  TouchableOpacity,
+  Linking,
+  ScrollView,
+  Image,
+} from 'react-native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import LinearGradient from 'react-native-linear-gradient';
+import {useNavigation} from '@react-navigation/native';
+
+const Home = ({route}) => {
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [firmName, setFirmName] = useState('');
+  const [productName, setProductName] = useState('');
+  const [user, setUser] = useState(''); // Assuming login status (set this properly)
+
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch(
+        'https://signpostphonebook.in/client_fetch_for_new_database.php',
+      );
+      if (!response.ok)
+        throw new Error(`HTTP Error! Status: ${response.status}`);
+      const jsonResponse = await response.json();
+      if (Array.isArray(jsonResponse)) {
+        const sortedData = jsonResponse.sort((a, b) => b.id - a.id);
+        setData(sortedData);
+        setFilteredData(sortedData);
+      } else {
+        Alert.alert('Error', 'Unexpected response from server.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load data: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let filtered = data;
+    if (firmName) {
+      filtered = data.filter(item =>
+        item.businessname?.toLowerCase().includes(firmName.toLowerCase()),
+      );
+    } else if (productName) {
+      filtered = data.filter(item =>
+        item.product?.toLowerCase().includes(productName.toLowerCase()),
+      );
+    }
+    setFilteredData(filtered);
+  }, [firmName, productName, data]);
+
+  const handleMorePress = item => {
+    navigation.navigate('Details', {selectedItem: item});
+  };
+
+  const OpenDialpad = dialedNumber => {
+    if (!user) {
+      Alert.alert('Login Required', 'You need to log in to make a call.', [
+        {text: 'OK', onPress: () => navigation.navigate('Login')},
+      ]);
+      return;
+    }
+
+    const phoneUrl = `tel:${dialedNumber}`;
+    Linking.canOpenURL(phoneUrl)
+      .then(supported => {
+        if (supported) {
+          Linking.openURL(phoneUrl);
+        } else {
+          Alert.alert('Error', 'Dial pad is not supported on this device.');
+        }
+      })
+      .catch(err => console.error('An error occurred', err));
+  };
+
+  const renderItem = ({item}) => (
+    <View style={styles.textContainer}>
+      <Text style={styles.businessName}>
+        {item.businessname || item.person || 'Name not found'}
+      </Text>
+      {productName ? (
+        <Text style={styles.productName}>{item.product}</Text>
+      ) : (
+        item.city &&
+        item.pincode && (
+          <Text style={styles.locationText}>
+            {item.city}, {item.pincode}
+          </Text>
+        )
+      )}
+    </View>
+  );
+
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  return (
+    <ScrollView style={{flex: 1, backgroundColor: '#fff'}}>
+      <LinearGradient colors={['#FFD700', '#FFB800']} style={styles.header}>
+        <View style={styles.headerTop}>
+          <Text style={styles.welcomeText}>Welcome</Text>
+          <View style={styles.iconGroup}>
+            <MaterialIcons name="notifications-none" size={24} color="#000" />
+            <TouchableOpacity onPress={() => setIsFavorite(!isFavorite)}>
+              <MaterialIcons
+                name={isFavorite ? 'favorite' : 'favorite-border'}
+                size={24}
+                color={isFavorite ? 'red' : '#000'}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.searchBar}>
+          <TextInput
+            placeholder="Search firm name..."
+            style={styles.searchInput}
+            value={firmName}
+            onChangeText={setFirmName}
+          />
+          <TextInput
+            placeholder="Search product..."
+            style={styles.searchInput}
+            value={productName}
+            onChangeText={setProductName}
+          />
+        </View>
+      </LinearGradient>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#FFD700" />
+      ) : (
+        <FlatList
+          data={filteredData}
+          keyExtractor={item => item.id.toString()}
+          renderItem={renderItem}
+          contentContainerStyle={{padding: 10}}
+        />
+      )}
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  header: {padding: 20, paddingTop: 40},
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  welcomeText: {fontSize: 12, color: '#444'},
+  iconGroup: {flexDirection: 'row', gap: 10},
+
+  searchBar: {flexDirection: 'row', alignItems: 'center', marginTop: 10},
+  searchInput: {
+    flex: 1,
+    backgroundColor: '#FFF',
+    padding: 10,
+    borderRadius: 5,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+
+  textContainer: {alignItems: 'center', marginTop: 10},
+  businessName: {fontSize: 18, fontWeight: 'bold', color: '#000'},
+  productName: {fontSize: 16, color: '#555'},
+  locationText: {fontSize: 14, color: '#777'},
+});
+
+export default Home;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+example 
+
+
+import React from "react";
+import { View, Text, TextInput, Image, TouchableOpacity, ScrollView } from "react-native";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import LinearGradient from "react-native-linear-gradient";
+
+const Home = () => {
+  return (
+    <ScrollView style={{ flex: 1, backgroundColor: "#fff" }}>
+      {/* Header Section */}
+      <LinearGradient colors={["#FFD700", "#FFB800"]} style={styles.header}>
+        <View style={styles.headerTop}>
+          <Text style={styles.welcomeText}>Welcome</Text>
+
+          <View style={styles.iconGroup}>
+            <MaterialIcons name="notifications-none" size={24} color="#000" />
+            <MaterialIcons name="shopping-cart" size={24} color="#000" />
+          </View>
+        </View>
+        <View style={styles.searchBar}>
+          <TextInput placeholder="Search in factory products.." style={styles.searchInput} />
+          <TouchableOpacity>
+            <MaterialIcons name="search" size={24} color="#666" />
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
+
+      {/* Suggestions Section */}
+      <View style={styles.suggestionSection}>
+        <Text style={styles.suggestionTitle}>Some Suggestions</Text>
+        <Text style={styles.suggestionDescription}>
+          Discover your customers nearby. Attract them with your offers & discounts.
+        </Text>
+        <View style={styles.featureContainer}>
+          <View style={styles.featureBox}>
+            <MaterialIcons name="local-shipping" size={40} color="#F57C00" />
+            <Text style={styles.featureText}>Source from factories</Text>
+          </View>
+          <View style={styles.featureBox}>
+            <MaterialIcons name="storefront" size={40} color="#D32F2F" />
+            <Text style={styles.featureText}>Fast selling designs</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Delivery Section */}
+      <View style={styles.deliveryInfo}>
+        <MaterialIcons name="location-on" size={24} color="#D32F2F" />
+        <Text style={styles.deliveryText}>Delivering to 600003, CHENNAI</Text>
+      </View>
+
+      {/* Categories Section */}
+      <View style={styles.categorySection}>
+        <Text style={styles.categoryTitle}>Categories</Text>
+        <View style={styles.categoryList}>
+          <View style={styles.categoryItem}>
+            <Image source={{ uri: "https://via.placeholder.com/80" }} style={styles.categoryImage} />
+            <Text style={styles.categoryLabel}>Men</Text>
+          </View>
+          <View style={styles.categoryItem}>
+            <Image source={{ uri: "https://via.placeholder.com/80" }} style={styles.categoryImage} />
+            <Text style={styles.categoryLabel}>Women</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* What's New Section */}
+      <View style={styles.whatsNewSection}>
+        <Text style={styles.whatsNewTitle}>What’s New on</Text>
+        <Text style={styles.brandHighlight}>My Factory</Text>
+        <TouchableOpacity style={styles.exploreButton}>
+          <Text style={styles.exploreButtonText}>EXPLORE NOW →</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+};
+
+const styles = {
+  header: { padding: 20, paddingTop: 40 },
+  headerTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  welcomeText: { fontSize: 12, color: "#444", fontWeight:"bold" },
+  iconGroup: { flexDirection: "row", gap: 10 },
+  searchBar: { flexDirection: "row", backgroundColor: "#fff", padding: 8, borderRadius: 10, marginTop: 10 },
+  searchInput: { flex: 1, paddingHorizontal: 10 },
+
+  suggestionSection: { padding: 20, alignItems: "center" },
+  suggestionTitle: { fontSize: 18, fontWeight: "bold", color: "#000" },
+  suggestionDescription: { fontSize: 14, color: "#777", marginBottom: 10 },
+  featureContainer: { flexDirection: "row", justifyContent: "space-between", width: "100%" },
+  featureBox: { flex: 1, alignItems: "center", padding: 10, backgroundColor: "#FFF3E0", borderRadius: 10, marginHorizontal: 5 },
+  featureText: { fontSize: 12, textAlign: "center", marginTop: 5 },
+
+  deliveryInfo: { flexDirection: "row", alignItems: "center", backgroundColor: "#FFE0B2", padding: 10, borderRadius: 10, margin: 20 },
+  deliveryText: { fontSize: 14, marginLeft: 10 },
+
+  categorySection: { padding: 20 },
+  categoryTitle: { fontSize: 16, fontWeight: "bold", marginBottom: 10 },
+  categoryList: { flexDirection: "row", justifyContent: "space-around" },
+  categoryItem: { alignItems: "center" },
+  categoryImage: { width: 80, height: 80, borderRadius: 10 },
+  categoryLabel: { fontSize: 16, fontWeight: "bold", color: "#000" },
+
+  whatsNewSection: { backgroundColor: "#FFD54F", padding: 20, margin: 20, borderRadius: 10, alignItems: "center" },
+  whatsNewTitle: { fontSize: 14, color: "#000" },
+  brandHighlight: { fontSize: 18, fontWeight: "bold", color: "#000" },
+  exploreButton: { backgroundColor: "#000", padding: 10, borderRadius: 5, marginTop: 10 },
+  exploreButtonText: { color: "#fff", fontSize: 14 },
+};
+
+export default Home;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, {useEffect, useState, useContext} from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  TextInput,
+  TouchableOpacity,
+  Linking,
+} from 'react-native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import LinearGradient from 'react-native-linear-gradient';
+import {useNavigation} from '@react-navigation/native';
+import {AuthContext} from './AuthContext';
+
+const Home = () => {
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [firmName, setFirmName] = useState('');
+  const [productName, setProductName] = useState('');
+  const [isFavorite, setIsFavorite] = useState(false);
+  const {userData} = useContext(AuthContext);
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch(
+        'https://signpostphonebook.in/client_fetch_for_new_database.php',
+      );
+      if (!response.ok) throw new Error(`HTTP Error! Status: ${response.status}`);
+      const jsonResponse = await response.json();
+      if (Array.isArray(jsonResponse)) {
+        const sortedData = jsonResponse.sort((a, b) => b.id - a.id);
+        setData(sortedData);
+        setFilteredData(sortedData);
+      } else {
+        Alert.alert('Error', 'Unexpected response from server.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load data: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let filtered = data;
+    if (firmName) {
+      filtered = data.filter(item =>
+        item.businessname?.toLowerCase().includes(firmName.toLowerCase()),
+      );
+    } else if (productName) {
+      filtered = data.filter(item =>
+        item.product?.toLowerCase().includes(productName.toLowerCase()),
+      );
+    }
+    setFilteredData(filtered);
+  }, [firmName, productName, data]);
+
+  const handleMorePress = item => {
+    navigation.navigate('Details', {selectedItem: item});
+  };
+
+  const OpenDialpad = dialedNumber => {
+    if (!userData) {
+      Alert.alert('Login Required', 'You need to log in to make a call.', [
+        {text: 'OK', onPress: () => navigation.navigate('Login')},
+      ]);
+      return;
+    }
+    const phoneUrl = `tel:${dialedNumber}`;
+    Linking.canOpenURL(phoneUrl).then(supported => {
+      if (supported) {
+        Linking.openURL(phoneUrl);
+      } else {
+        Alert.alert('Error', 'Dial pad is not supported on this device.');
+      }
+    }).catch(err => console.error('An error occurred', err));
+  };
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="yellow" style={styles.loader} />;
+  }
+
+  return (
+    <LinearGradient colors={['#FFD700', '#FFB800']} style={styles.header}>
+      <View style={styles.headerTop}>
+        <Text style={styles.welcomeText}>Welcome {userData?.businessname || userData?.person || ''}</Text>
+        <View style={styles.iconGroup}>
+          <MaterialIcons name="notifications-none" size={24} color="#000" />
+          <TouchableOpacity onPress={() => setIsFavorite(!isFavorite)}>
+            <MaterialIcons name={isFavorite ? 'favorite' : 'favorite-border'} size={24} color={isFavorite ? 'red' : '#000'} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.searchBar}>
+        <TextInput placeholder="Search firm name..." style={styles.searchInput} value={firmName} onChangeText={setFirmName} />
+        <TextInput placeholder="Search product..." style={styles.searchInput} value={productName} onChangeText={setProductName} />
+      </View>
+
+      <FlatList
+        data={filteredData}
+        keyExtractor={item => item.id.toString()}
+        renderItem={({item}) => (
+          <View style={styles.card}>
+            <View style={styles.cardRow}>
+              <View style={styles.textContainer}>
+                <Text style={styles.businessName}>{item.businessname || item.person || 'Name not found'}</Text>
+                {productName && <Text style={styles.productName}>{item.product}</Text>}
+                {!productName && item.city && item.pincode && <Text style={styles.locationText}>{item.city}, {item.pincode}</Text>}
+              </View>
+              <View style={styles.rightContainer}>
+                {item.mobileno && <Text style={styles.mobile}>{item.mobileno.slice(0, 5)}xxxxx</Text>}
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity style={styles.button} onPress={() => OpenDialpad(item.mobileno)}>
+                    <Text style={styles.buttonText}>Dial</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.detailButton} onPress={() => handleMorePress(item)}>
+                    <Text style={styles.buttonText}>More</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
+      />
+    </LinearGradient>
+  );
+};
+
+const styles = StyleSheet.create({
+  header: {padding: 20, paddingTop: 40},
+  headerTop: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'},
+  welcomeText: {fontSize: 18, color: '#444'},
+  iconGroup: {flexDirection: 'row', gap: 10},
+  searchBar: {flexDirection: 'row', alignItems: 'center', marginTop: 10},
+  searchInput: {flex: 1, backgroundColor: '#FFF', padding: 10, borderRadius: 5, marginRight: 10, borderWidth: 1, borderColor: '#ddd'},
+  card: {backgroundColor: '#fff', padding: 16, borderRadius: 10, elevation: 4, margin: 10},
+  businessName: {fontSize: 18, fontWeight: 'bold', color: '#6A0DAD'},
+  locationText: {fontSize: 14, color: 'gray'},
+  mobile: {fontSize: 16, color: '#333'},
+  buttonContainer: {flexDirection: 'row', gap: 10},
+  button: {backgroundColor: '#6A0DAD', padding: 10, borderRadius: 5},
+  detailButton: {backgroundColor: '#6A0DAD', padding: 10, borderRadius: 5},
+  buttonText: {color: '#fff', fontWeight: 'bold'},
+  loader: {flex: 1, justifyContent: 'center', alignItems: 'center'},
+});
+
+export default Home;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+need to work 
+
+import React, {useEffect, useState, useContext} from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  TextInput,
+  TouchableOpacity,
+  Linking,
+  Modal,
+  ScrollView,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
+import {useNavigation} from '@react-navigation/native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import LinearGradient from 'react-native-linear-gradient';
+import {AuthContext} from './AuthContext';
+
+const Home = route => {
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [firmName, setFirmName] = useState('');
+  const [productName, setProductName] = useState('');
+  const [selectedItem, setSelectedItem] = useState('');
+  const {userData, setUserData} = useContext(AuthContext);
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  const [user, setUser] = useState(''); // Assuming login status (set this properly)
+
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch(
+        'https://signpostphonebook.in/client_fetch_for_new_database.php',
+      );
+      if (!response.ok)
+        throw new Error(`HTTP Error! Status: ${response.status}`);
+      const jsonResponse = await response.json();
+      if (Array.isArray(jsonResponse)) {
+        const sortedData = jsonResponse.sort((a, b) => b.id - a.id);
+        setData(sortedData);
+        setFilteredData(sortedData);
+      } else {
+        Alert.alert('Error', 'Unexpected response from server.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load data: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let filtered = data;
+    if (firmName) {
+      filtered = data.filter(item =>
+        item.businessname?.toLowerCase().includes(firmName.toLowerCase()),
+      );
+    } else if (productName) {
+      filtered = data.filter(item =>
+        item.product?.toLowerCase().includes(productName.toLowerCase()),
+      );
+    }
+    setFilteredData(filtered);
+  }, [firmName, productName, data]);
+
+  const renderItem = ({item}) => {
+    //................................................................................................................
+    // Dial button and more button  click panna nadakura function
+
+    const handleMorePress = item => {
+      navigation.navigate('Details', {selectedItem: item});
+    };
+
+    const OpenDialpad = dialedNumber => {
+      if (!user || user === '') {
+        Alert.alert('Login Required', 'You need to log in to make a call.', [
+          {text: 'OK', onPress: () => navigation.navigate('Login')},
+        ]);
+        return;
+      }
+
+      const phoneUrl = `tel:${dialedNumber}`;
+
+      Linking.canOpenURL(phoneUrl)
+        .then(supported => {
+          if (supported) {
+            Linking.openURL(phoneUrl);
+          } else {
+            Alert.alert('Error', 'Dial pad is not supported on this device.');
+          }
+        })
+        .catch(err => console.error('An error occurred', err));
+    };
+
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardRow}>
+          <View style={styles.textContainer}>
+            <Text style={styles.businessName}>
+              {item.businessname || item.person || 'Name not found'}
+            </Text>
+            {productName && (
+              <Text style={styles.productName}>{item.product}</Text>
+            )}
+            {!productName && item.city && item.pincode && (
+              <Text style={styles.locationText}>
+                {item.city}, {item.pincode}
+              </Text>
+            )}
+          </View>
+
+          <View style={styles.rightContainer}>
+            {item.mobileno && (
+              <Text style={styles.mobile}>
+                {item.mobileno.slice(0, 5)}xxxxx
+              </Text>
+            )}
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => OpenDialpad(item.mobileno)}>
+                <Text style={styles.buttonText}>Dial</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.detailButton}
+                onPress={() => handleMorePress(item)}>
+                <Text style={styles.buttonText}>More</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  if (loading) {
+    return (
+      <ActivityIndicator size="large" color="yellow" style={styles.loader} />
+    );
+  }
+
+  return (
+    <LinearGradient colors={['#FFD700', '#FFB800']} style={styles.header}>
+      <View style={styles.headerTop}>
+        <Text style={styles.welcomeText}>
+          Welcome {userData.businessname || userData.person || 'Guest'}
+        </Text>
+        <View style={styles.iconGroup}>
+          <MaterialIcons name="notifications-none" size={24} color="#000" />
+          <TouchableOpacity onPress={() => setIsFavorite(!isFavorite)}>
+            <MaterialIcons
+              name={isFavorite ? 'favorite' : 'favorite-border'}
+              size={24}
+              color={isFavorite ? 'red' : '#000'}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.searchBar}>
+        <TextInput
+          placeholder="Search firm name..."
+          style={styles.searchInput}
+          value={firmName}
+          onChangeText={setFirmName}
+        />
+        <TextInput
+          placeholder="Search product..."
+          style={styles.searchInput}
+          value={productName}
+          onChangeText={setProductName}
+        />
+      </View>
+
+      <View>
+        <Text style={styles.headercontent}>Find Anyone, Anytime</Text>
+        <Text style={styles.headersub}>
+          Discover your customers near by you, Attract them with your offers &
+          Discounts.
+        </Text>
+      </View>
+    </LinearGradient>
+  );
+};
+
+const styles = StyleSheet.create({
+  header: {
+    padding: 20,
+    paddingTop: 40,
+    paddingVertical: 30,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  welcomeText: {fontSize: 18, color: '#444'},
+  iconGroup: {flexDirection: 'row', gap: 10},
+
+  searchBar: {flexDirection: 'row', alignItems: 'center', marginTop: 30},
+  searchInput: {
+    flex: 1,
+    backgroundColor: '#FFF',
+    padding: 10,
+    borderRadius: 5,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+
+  headercontent: {
+    fontSize: 22,
+    textAlign: 'center',
+    fontWeight: 'bold',
+    marginTop: 30,
+  },
+
+  headersub: {
+    textAlign: 'center',
+    marginTop: 5,
+  },
+
+  card: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'blue',
+    padding: 16,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: {width: 0, height: 3},
+    elevation: 4,
+    margin: 10,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  textContainer: {
+    flex: 1,
+  },
+  rightContainer: {
+    alignItems: 'flex-end',
+  },
+  businessName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#6A0DAD',
+  },
+  locationText: {
+    fontSize: 14,
+    color: 'gray',
+    marginTop: 5,
+  },
+  mobile: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 10,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  button: {
+    backgroundColor: '#6A0DAD',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    marginRight: 5,
+  },
+  detailButton: {
+    backgroundColor: '#6A0DAD',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  businessName: {fontSize: 18, fontWeight: 'bold'},
+  locationText: {fontSize: 14, color: 'gray'},
+  mobile: {fontSize: 16, color: '#333'},
+  button: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  detailButton: {
+    backgroundColor: '#28a745',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  buttonText: {color: '#fff', textAlign: 'center'},
+  loader: {flex: 1, justifyContent: 'center', alignItems: 'center'},
+  inputContainer: {flexDirection: 'row', padding: 10},
+  input: {flex: 1, borderWidth: 1, borderRadius: 5, padding: 10, margin: 5},
+});
+
+export default Home;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ <LinearGradient colors={['#FFD700', '#FFB800']} style={styles.header}>
+      <View style={styles.headerTop}>
+        <Text style={styles.welcomeText}>
+          Welcome {userData.businessname || userData.person || 'Guest'}
+        </Text>
+        <View style={styles.iconGroup}>
+          <MaterialIcons name="notifications-none" size={24} color="#000" />
+          <TouchableOpacity onPress={() => setIsFavorite(!isFavorite)}>
+            <MaterialIcons
+              name={isFavorite ? 'favorite' : 'favorite-border'}
+              size={24}
+              color={isFavorite ? 'red' : '#000'}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.searchBar}>
+        <TextInput
+          placeholder="Search firm name..."
+          style={styles.searchInput}
+          value={firmName}
+          onChangeText={setFirmName}
+        />
+        <TextInput
+          placeholder="Search product..."
+          style={styles.searchInput}
+          value={productName}
+          onChangeText={setProductName}
+        />
+      </View>
+
+      <View>
+        <Text style={styles.headercontent}>Find Anyone, Anytime</Text>
+        <Text style={styles.headersub}>
+          Discover your customers near by you, Attract them with your offers &
+          Discounts.
+        </Text>
+      </View>
+    </LinearGradient>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    finally
+
+
+
+import React, {useContext, useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  TextInput,
+  TouchableOpacity,
+  Linking,
+  Modal,
+  ScrollView,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
+import {useNavigation} from '@react-navigation/native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import LinearGradient from 'react-native-linear-gradient';
+import {AuthContext, AuthProvider} from './AuthContext';
+
+const Home = route => {
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [firmName, setFirmName] = useState('');
+  const [productName, setProductName] = useState('');
+  const [selectedItem, setSelectedItem] = useState('');
+  const {userData, setUserData} = useContext(AuthContext);
+ 
+  const [user, setUser] = useState(''); // Assuming login status (set this properly)
+
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch(
+        'https://signpostphonebook.in/client_fetch_for_new_database.php',
+      );
+      if (!response.ok)
+        throw new Error(`HTTP Error! Status: ${response.status}`);
+      const jsonResponse = await response.json();
+      if (Array.isArray(jsonResponse)) {
+        const sortedData = jsonResponse.sort((a, b) => b.id - a.id);
+        setData(sortedData);
+        setFilteredData(sortedData);
+      } else {
+        Alert.alert('Error', 'Unexpected response from server.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load data: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let filtered = data;
+    if (firmName) {
+      filtered = data.filter(item =>
+        item.businessname?.toLowerCase().includes(firmName.toLowerCase()),
+      );
+    } else if (productName) {
+      filtered = data.filter(item =>
+        item.product?.toLowerCase().includes(productName.toLowerCase()),
+      );
+    }
+    setFilteredData(filtered);
+  }, [firmName, productName, data]);
+
+  const renderItem = ({item}) => {
+    //................................................................................................................
+    // Dial button and more button  click panna nadakura function
+
+    const handleMorePress = item => {
+      if (user) {
+        navigation.navigate('Details', {selectedItem: item});
+      } else {
+        Alert.alert('Login Required', 'You need to log in to make a call.', [
+          {text: 'OK', onPress: () => navigation.navigate('Login')},
+        ]);
+      }
+    };
+
+    const OpenDialpad = dialedNumber => {
+      if (!user || user === '') {
+        Alert.alert('Login Required', 'You need to log in to make a call.', [
+          {text: 'OK', onPress: () => navigation.navigate('Login')},
+        ]);
+        return;
+      }
+
+      const phoneUrl = `tel:${dialedNumber}`;
+
+      Linking.canOpenURL(phoneUrl)
+        .then(supported => {
+          if (supported) {
+            Linking.openURL(phoneUrl);
+          } else {
+            Alert.alert('Error', 'Dial pad is not supported on this device.');
+          }
+        })
+        .catch(err => console.error('An error occurred', err));
+    };
+
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardRow}>
+          <View style={styles.textContainer}>
+            <Text style={styles.businessName}>
+              {item.businessname || item.person || 'Name not found'}
+            </Text>
+            {productName && (
+              <Text style={styles.productName}>{item.product}</Text>
+            )}
+            {!productName && item.city && item.pincode && (
+              <Text style={styles.locationText}>
+                {item.city}, {item.pincode}
+              </Text>
+            )}
+          </View>
+
+          <View style={styles.rightContainer}>
+            {item.mobileno && (
+              <Text style={styles.mobile}>
+                {item.mobileno.slice(0, 5)}xxxxx
+              </Text>
+            )}
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => OpenDialpad(item.mobileno)}>
+                <Text style={styles.buttonText}>Dial</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.detailButton}
+                onPress={() => handleMorePress(item)}>
+                <Text style={styles.buttonText}>More</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  if (loading) {
+    return (
+      <ActivityIndicator
+        size="large"
+        color="darkyellow"
+        style={styles.loader}
+      />
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      {/* HEADER */}
+      <LinearGradient colors={['#FFD700', '#FFB800']} style={styles.header}>
+        <View style={styles.headerTop}>
+          <Text style={styles.welcomeText}>
+            Welcome {userData.businessname || userData.person || 'Guest'}
+          </Text>
+          <View style={styles.iconGroup}>
+            <MaterialIcons name="notifications-none" size={24} color="#000" />
+            <TouchableOpacity
+              style={styles.profileIconContainer}
+              onPress={() => {
+                if (userData && userData.id) {
+                  navigation.navigate('Profile'); // Navigate to Profile if logged in
+                } else {
+                  navigation.navigate('Login'); // Navigate to Login if not logged in
+                }
+              }}>
+              <MaterialIcons
+                name="person"
+                size={28}
+                style={styles.profileIcon}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* SEARCH INPUT */}
+        <View style={styles.searchBar}>
+          <TextInput
+            placeholder="Search firm name..."
+            style={styles.searchInput}
+            value={firmName}
+            onChangeText={setFirmName}
+          />
+          <TextInput
+            placeholder="Search product..."
+            style={styles.searchInput}
+            value={productName}
+            onChangeText={setProductName}
+          />
+        </View>
+
+        {/* HEADER CONTENT */}
+        <View>
+          <Text style={styles.headercontent}>Find Anyone, Anytime</Text>
+          <Text style={styles.headersub}>
+            Discover your customers near by you, Attract them with your offers &
+            Discounts.
+          </Text>
+        </View>
+      </LinearGradient>
+
+      {/* FLATLIST CONTAINER */}
+      <View style={styles.listContainer}>
+        <FlatList
+          data={filteredData}
+          renderItem={renderItem}
+          keyExtractor={item => item.id.toString()}
+          contentContainerStyle={{flexGrow: 1}}
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  //Linear Gradient kulla irrukura items ku styles
+
+  header: {
+    padding: 20,
+    paddingTop: 40,
+    paddingVertical: 30,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  welcomeText: {
+    fontSize: 18,
+    color: '#444',
+  },
+  iconGroup: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 30,
+  },
+  searchInput: {
+    flex: 1,
+    backgroundColor: '#FFF',
+    padding: 10,
+    borderRadius: 5,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  headercontent: {
+    fontSize: 22,
+    textAlign: 'center',
+    fontWeight: 'bold',
+    marginTop: 30,
+  },
+  headersub: {
+    textAlign: 'center',
+    marginTop: 5,
+  },
+
+
+  //Profile icon ku styles
+
+  profileIconContainer: {
+    
+    borderRadius: 50, // Makes it circular
+    backgroundColor: '#fff', // White background
+    elevation: 3, // Android shadow
+    shadowColor: '#000', // iOS shadow
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+  profileIcon: {
+    color: '#000', // Black icon color
+  },
+
+  card: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: {width: 0, height: 3},
+    elevation: 4,
+    margin: 10,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  textContainer: {
+    flex: 1,
+  },
+  rightContainer: {
+    alignItems: 'flex-end',
+  },
+  businessName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#6A0DAD',
+  },
+  locationText: {
+    fontSize: 14,
+    color: 'gray',
+    marginTop: 5,
+  },
+  mobile: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 10,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  button: {
+    backgroundColor: '#6A0DAD',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    marginRight: 5,
+  },
+  detailButton: {
+    backgroundColor: '#6A0DAD',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  businessName: {fontSize: 18, fontWeight: 'bold'},
+  locationText: {fontSize: 14, color: 'gray'},
+  mobile: {fontSize: 16, color: '#333'},
+  button: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  detailButton: {
+    backgroundColor: '#28a745',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  buttonText: {color: '#fff', textAlign: 'center'},
+  loader: {flex: 1, justifyContent: 'center', alignItems: 'center'},
+  inputContainer: {flexDirection: 'row', padding: 10},
+  input: {flex: 1, borderWidth: 1, borderRadius: 5, padding: 10, margin: 5},
+});
+
+export default Home;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CategorywisePromotion
+
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  heading: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#6a0dad",
+    textAlign: "center",
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginTop: 10,
+  },
+  textarea: {
+    borderWidth: 1,
+    padding: 10,
+    borderRadius: 5,
+    fontSize: 14,
+  },
+  charCount: {
+    alignSelf: "flex-end",
+    margin: 5,
+  },
+  input: {
+    borderWidth: 1,
+    padding: 10,
+    borderRadius: 5,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  button: {
+    backgroundColor: "#007BFF",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    width: "48%",
+  },
+  clearButton: {
+    backgroundColor: "#FF4500",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    width: "48%",
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+  },
+  resultText: {
+    marginVertical: 10,
+    fontSize: 16,
+  },
+  card: {
+    padding: 10,
+    marginVertical: 5,
+    borderRadius: 8,
+    backgroundColor: "white",
+  },
+  cardTitle: {
+    fontWeight: "bold",
+  },
+  fixedButtonContainer: {
+    position: "absolute",
+    bottom: 10,
+    left: 20,
+    right: 20,
+  },

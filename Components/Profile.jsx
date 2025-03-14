@@ -1,19 +1,16 @@
 
-import React, {useState, useEffect, useContext} from 'react';
+import React, { useState,useContext,useEffect } from "react";
 import {
   View,
   Text,
   Image,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
-  Modal,
-  Button,
   ScrollView,
-  MenuItem,
-  TouchableWithoutFeedback,
-} from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+  Modal,
+  StyleSheet,
+} from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome";
+
 import {AuthContext} from './AuthContext';
 import axios from 'axios';
 
@@ -216,75 +213,67 @@ const Profile = () => {
 
   return (
     <View style={styles.container}>
-      {/* Top Section */}
-      <View style={styles.header}>
-        <TouchableOpacity>
-          <Icon name="arrow-left" size={20} color="#fff" style={styles.backIcon} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity>
-          <Icon name="cog" size={20} color="#fff" style={styles.settingsIcon} />
-        </TouchableOpacity>
+    {/* Header Section */}
+    <View style={styles.header}>
+   
 
-        {/* Profile Image */}
-        <Image
-                source={{ uri: profileImage }}
-                style={styles.profileImage}
-                resizeMode="contain"
-              />
-        <Text style={styles.userName}> {userData?.businessname || userData?.person || 'Your name'}</Text>
-        {/* <Text style={styles.userRole}>Joining date</Text> */}
+      {/* Profile Image */}
+      <Image
+        source={{ uri: profileImage }}
+        style={styles.profileImage}
+        resizeMode="contain"
+      />
+      <Text style={styles.userName}>{userData?.businessname || userData?.person || 'Your Name'}</Text>
 
-        {/* Follow Stats */}
-        <View style={styles.statsContainer}>
-          <Text style={styles.statsText}>
-            <Text style={styles.statsNumber}>{taskCount}</Text> Total Count
-          </Text>
-          <Text style={styles.statsText}>
-            <Text style={styles.statsNumber}>{referralCount}</Text> Referral Count
-          </Text>
+      {/* Stats Section (Fixed Position) */}
+      <View style={styles.statsContainer}>
+        <View style={styles.statBox}>
+          <Text style={styles.statsNumber}>{taskCount}</Text>
+          <Text style={styles.statsText}>Total Count</Text>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.statBox}>
+          <Text style={styles.statsNumber}>{referralCount}</Text>
+          <Text style={styles.statsText}>Referral Count</Text>
         </View>
       </View>
+    </View>
 
-      {/* Contact Information */}
-      <ScrollView style={styles.infoSection}>
-        <View style={styles.infoRow}>
-          <Icon name="envelope" size={20} color="#666" />
-          <Text style={styles.infoText}>{userData.description || 'description'}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Icon name="phone" size={20} color="#666" />
-          <Text style={styles.infoText}> {userData.product || 'Product'}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Icon name="twitter" size={20} color="#1DA1F2" />
-          <Text style={styles.infoText}>{userData.address || 'Address'}, {userData.city || 'City'},{' '}
-          {userData.pincode || 'Pincode'}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Icon name="behance" size={20} color="#1769FF" />
-          <Text style={styles.infoText}>{userData.mobileno || 'Mobile No'}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Icon name="facebook" size={20} color="#4267B2" />
-          <Text style={styles.infoText}>{userData.email || 'Email'}</Text>
-        </View>
+    {/* Contact Information */}
+    <ScrollView style={styles.infoSection}>
+      <View style={styles.infoRow}>
+        <Icon name="envelope" size={20} color="#666" />
+        <Text style={styles.infoText}>{userData.description || "Description"}</Text>
+      </View>
+      <View style={styles.infoRow}>
+        <Icon name="cube" size={20} color="#666" />
+        <Text style={styles.infoText}>{userData.product || "Product"}</Text>
+      </View>
+      <View style={styles.infoRow}>
+        <Icon name="map-marker" size={20} color="#1DA1F2" />
+        <Text style={styles.infoText}>
+          {userData.address || "Address"}, {userData.city || "City"}, {userData.pincode || "Pincode"}
+        </Text>
+      </View>
+      <View style={styles.infoRow}>
+        <Icon name="phone" size={20} color="#1769FF" />
+        <Text style={styles.infoText}>{userData.mobileno || "Mobile No"}</Text>
+      </View>
+      <View style={styles.infoRow}>
+        <Icon name="envelope" size={20} color="#4267B2" />
+        <Text style={styles.infoText}>{userData.email || "Email"}</Text>
+      </View>
+    </ScrollView>
 
+    {/* Membership Card Button (Fixed Position) */}
+    <View style={styles.fixedButtonContainer}>
+      <TouchableOpacity style={styles.openModalButton} onPress={openMembershipModal}>
+        <Text style={styles.buttonText}>Membership Card</Text>
+      </TouchableOpacity>
+    </View>
 
-
-
-        <TouchableOpacity
-          style={styles.openModalButton}
-          onPress={openMembershipModal}
-        >
-          <Text style={styles.buttonText}>Membership Card</Text>
-        </TouchableOpacity>
-
-
-
-
- {/* Membership Card Modal */}
- <Modal
+    {/* Membership Card Modal */}
+    <Modal
           visible={membershipModalVisible}
           animationType="fade"
           transparent={true}
@@ -292,12 +281,12 @@ const Profile = () => {
           <View style={styles.overlay}>
             <View style={styles.modalContainer}>
               {/* Header Section */}
-              <View style={styles.heaader}>
+              <View style={styles.modalheader}>
                 <Image
                   source={require("../src/assets/images/Logo_Phonebook.jpg")}
                   style={styles.logo}
                 />
-                <Text style={styles.heaaderText}>SIGNPOST PHONE BOOK</Text>
+                <Text style={styles.modalheaderText}>SIGNPOST PHONE BOOK</Text>
 
                 {/* Close Button */}
                 <TouchableOpacity
@@ -340,91 +329,39 @@ const Profile = () => {
             </View>
           </View>
         </Modal>
-
-
-
-      </ScrollView>
-    </View>
+  </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8F9FA",
-  },
+  container: { flex: 1, backgroundColor: "#F8F9FA" },
   header: {
-    backgroundColor: "#1E3CFF", // Blue background
+    backgroundColor: "#1E3CFF",
     alignItems: "center",
     paddingVertical: 30,
     borderBottomLeftRadius: 25,
     borderBottomRightRadius: 25,
   },
-  backIcon: {
-    position: "absolute",
-    left: 20,
-    top: 15,
-  },
-  settingsIcon: {
-    position: "absolute",
-    right: 20,
-    top: 15,
-  },
-  profileText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginTop: 10,
-    borderWidth: 2,
-    borderColor: "#fff",
-  },
-  userName: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 10,
-  },
-  userRole: {
-    color: "#fff",
-    fontSize: 14,
-  },
-  statsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "60%",
-    marginTop: 15,
-  },
-  statsText: {
-    color: "#fff",
-    fontSize: 14,
-  },
-  statsNumber: {
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  infoSection: {
-    padding: 20,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-  },
-  infoText: {
-    marginLeft: 15,
-    fontSize: 16,
-    color: "#333",
-  },
+  backIcon: { position: "absolute", left: 20, top: 15 },
+  settingsIcon: { position: "absolute", right: 20, top: 15 },
+  profileImage: { width: 80, height: 80, borderRadius: 40, marginTop: 10, borderWidth: 2, borderColor: "#fff" },
+  userName: { color: "#fff", fontSize: 20, fontWeight: "bold", marginTop: 10 },
+  
+  statsContainer: { flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 10 },
+  statBox: { alignItems: "center", paddingHorizontal: 20 },
+  statsNumber: { fontSize: 18, fontWeight: "bold", color: "#fff" },
+  statsText: { fontSize: 14, color: "#fff" },
+  divider: { height: 30, width: 2, backgroundColor: "#fff", marginHorizontal: 10 },
 
-  // /membership cars styles
+  infoSection: { padding: 20 },
+  infoRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#ddd" },
+  infoText: { marginLeft: 15, fontSize: 16, color: "#333" },
 
+  fixedButtonContainer: { position: "absolute", bottom: 20, alignSelf: "center" },
+  openModalButton: { backgroundColor: "#ff4081", padding: 10, borderRadius: 5 },
+  buttonText: { color: "white", fontSize: 16, fontWeight: "bold" },
+
+  
   overlay: {
     flex: 1,
     justifyContent: "center",
@@ -438,13 +375,13 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     alignItems: "center",
   },
-  heaader: {
-    backgroundColor: "#ff4081",
+  modalheader: {
+    backgroundColor: "#ff4581",
     width: "100%",
     flexDirection: "row", // Arrange items in a row
     alignItems: "center", // Align items vertically
     justifyContent: "center", // Align items horizontally
-    padding: 15,
+    padding: 10,
   },
 
   logo: {
@@ -452,7 +389,7 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
   },
-  heaaderText: {
+  modalheaderText: {
     fontSize: 22,
     fontWeight: "bold",
     color: "white",
@@ -467,9 +404,10 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   cardContent: {
+    marginRight: -105,
     flexDirection: "row",
     alignItems: "center",
-    padding: 15,
+    
   },
   memprofileImage: {
     width: 60,
@@ -490,7 +428,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   addressText: {
-    width: "90%",
+    width: "70%",
     fontSize: 14,
     color: "gray",
     marginTop: 5,
@@ -521,23 +459,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  ProfilecloseButton: {
-    position: "absolute",
-    right: "10",
-  },
-
-  ProfilecloseButtonText: {
-    color: "white",
-    backgroundColor: "black",
-    width: 35,
-    height: 35,
-    fontSize: 26,
-    paddingLeft: 10,
-    // left: 150,
-    // marginVertical: 15,
-    borderRadius: 25,
-    fontWeight: "bold",
-  },
 });
-
 export default Profile;

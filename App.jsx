@@ -1,27 +1,27 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+import { AuthProvider } from "./Components/AuthContext";
+
+// Import Screens
 import BottomTabs from "./Components/BottomTabs";
-import Details from "./Components/Details";
-import Login from "./Components/Login"; // Import Login screen
+import Login from "./Components/Login";
 import Signup from "./Components/Signup";
-import { AuthProvider } from "./Components/AuthContext"; 
-import NearbyPromotion from "./Components/NearbyPromotion";
-import CategorywisePromotion from "./Components/CategorywisePromotion";
+import Details from "./Components/Details";
+import Profile from "./Components/Profile";
 
 const Stack = createStackNavigator();
 
 const App = () => {
   return (
-    <AuthProvider> 
+    <AuthProvider>
       <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen name="HomeTabs" component={BottomTabs} options={{ headerShown: false }} />
-          <Stack.Screen name="Details" component={Details} />
-          <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} /> 
-          <Stack.Screen name="Signup" component={Signup} options={{ headerShown: false }} /> 
-          <Stack.Screen name="CategorywisePromotion" component={CategorywisePromotion} options={{ headerShown: false }} /> 
-          <Stack.Screen name="NearbyPromotion" component={NearbyPromotion} options={{ headerShown: false }} /> 
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="BottomTabs" component={BottomTabs} />
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Signup" component={Signup} />
+          <Stack.Screen name="Details" component={Details} Options={{ headerShown: true }} />
+          <Stack.Screen name="Profile" component={Profile} />
         </Stack.Navigator>
       </NavigationContainer>
     </AuthProvider>

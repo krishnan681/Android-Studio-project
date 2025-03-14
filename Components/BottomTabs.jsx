@@ -1,47 +1,75 @@
-import React, { useContext } from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import { AuthContext } from './AuthContext'; // Import AuthContext
+import React, { useContext } from "react";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { StyleSheet } from "react-native";
+import { AuthContext } from "./AuthContext";
 
 // Import Screens
-import Home from './Home';
-import Profile from './Profile';
-import Settings from './Settings';
-import CategorywisePromotion from './CategorywisePromotion';
-import NearbyPromotion from './NearbyPromotion';
+import Home from "./Home";
+import Settings from "./Settings";
+import CategorywisePromotion from "./CategorywisePromotion";
+import NearbyPromotion from "./NearbyPromotion";
+import MediaPartner from "./MediaPartner";
 
 const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => {
-  const { user } = useContext(AuthContext); // Get user data from AuthContext
+  const { user } = useContext(AuthContext);
 
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ color, size }) => {
           let iconName;
-          if (route.name === 'Home') iconName = 'home';
-          else if (route.name === 'Profile') iconName = 'person';
-          else if (route.name === 'Settings') iconName = 'settings';
-          return <Icon name={iconName} size={size} color={color} />;
+          switch (route.name) {
+            case "Home":
+              iconName = "home";
+              break;
+            case "Profile":
+              iconName = "user";
+              break;
+            case "Settings":
+              iconName = "cog";
+              break;
+            case "CategorywisePromotion":
+              iconName = "th-large";
+              break;
+            case "NearbyPromotion":
+              iconName = "map-marker";
+              break;
+            case "MediaPartner":
+              iconName = "users";
+              break;
+            default:
+              iconName = "question-circle";
+          }
+          return <FontAwesome name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#6B21A8',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: "black",
+        tabBarInactiveTintColor: "gray",
+        tabBarStyle: styles.tabBarStyle,
       })}
     >
-      <Tab.Screen name="Home" component={Home} />
-      
-      {/* Show Profile Tab only if user is logged in */}
-      {user !== '' && <Tab.Screen name="Profile" component={Profile} />}
-      
-      <Tab.Screen name="CategorywisePromotion" component={CategorywisePromotion} />
-      <Tab.Screen name="NearbyPromotion" component={NearbyPromotion} />
-      <Tab.Screen name="Settings" component={Settings} />
-
-
-
+      <Tab.Screen name="Home" component={Home} options={{ headerShown: false }} />
+ 
+      <Tab.Screen name="CategorywisePromotion" component={CategorywisePromotion} options={{ headerShown: false }}  />
+      <Tab.Screen name="NearbyPromotion" component={NearbyPromotion} options={{ headerShown: false }} />
+      <Tab.Screen name="MediaPartner" component={MediaPartner} options={{ headerShown: false }} />
+      <Tab.Screen name="Settings" component={Settings} options={{ headerShown: false }} />
     </Tab.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  tabBarStyle: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: 70,
+  },
+});
 
 export default BottomTabs;

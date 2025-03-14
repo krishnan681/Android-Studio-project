@@ -22,7 +22,7 @@ export default function ProductSms() {
   const [showResults, setShowResults] = useState(false);
   const maxLength = 290;
   const [customMessage, setCustomMessage] = useState(
-    "I Saw Your Listing in SIGNPOST PHONE BOOK. I am Interested in your Products. Please Send Details/Call Me. (Sent Thro Signpost PHONE BOOK)"
+    "I Saw Your Listing in SIGNPOST PHONE BOOK. I am Interested in your Products. Please Send Details/Call Me. (Sent Through Signpost PHONE BOOK)"
   );
 
   // Fetch all data initially (optional)
@@ -142,9 +142,9 @@ export default function ProductSms() {
     <ScrollView style={styles.container}>
       <Text
         style={{
-          fontSize: 30,
+          fontSize: 25,
           fontWeight: "bold",
-          marginBottom: 10,
+          // marginBottom: 10,
           color: "#6a0dad",
           textAlign: "center",
         }}
@@ -154,7 +154,7 @@ export default function ProductSms() {
 
       <Text
         style={{
-          marginTop: 10,
+          // marginTop: 10,
           lineHeight: 30,
           fontSize: 16,
           textAlign: "justify",
@@ -174,7 +174,7 @@ export default function ProductSms() {
       <TextInput
         style={{
           borderWidth: 1,
-          padding: 15,
+          // padding: 15,
           borderRadius: 5,
           marginBottom: 10,
           fontSize: 16,
@@ -192,7 +192,7 @@ export default function ProductSms() {
       <Text
         style={{
           fontWeight: "bold",
-          marginTop: 10,
+          // marginTop: 10,
           fontSize: 16,
         }}
       >
@@ -257,92 +257,113 @@ export default function ProductSms() {
     </ScrollView>
   );
 }
-
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-    },
-    heading:{
-        fontSize: 18,
-        fontWeight: "bold"
-    },
-    description:{
-        marginBottom: 10
-    },
-    label:{
-        fontSize: 16,
-        fontWeight: "bold",
-        marginTop: 10
-    },
-    textarea:{
-        borderWidth: 1,
-        padding: 10,
-        height: 100
-    },
-    charCount:{
-        alignSelf: "flex-end",
-        margin: 5
-    },
-    input:{
-        borderWidth: 1,
-        padding: 10,
-        marginVertical: 10,
-        borderRadius: 5
-
-    },
-    buttonRow:{
-        flexDirection: "row",
-        justifyContent: "space-between"
-    },
-    button:{
-        backgroundColor: "#007BFF",
-        padding: 10,
-        marginTop: 10,
-        borderRadius: 10
-    },
-    clearButton:{
-        backgroundColor: "#FF4500",
-        padding: 10,
-        marginTop: 10,
-        borderRadius: 5
-    },
-    buttonText:{
-        color: "white",
-        textAlign: "center"
-    },
-    resultText:{
-        marginVertical: 10
-    },
-    checkboxRow:{
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center"
-    },
-    checkboxLabel:{
-        fontWeight: "bold"
-    },
-    checkbox:{
-        fontSize: 18
-    },
-    card: {
-        padding: 20, // Increased padding for more space inside
-        shadowColor: "#000", // Add a shadow to make it stand out
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        marginVertical: 10, // More spacing between items
-        borderRadius: 10, // Rounded corners
-        backgroundColor: "white", // Light yellow background
-        minHeight: 100, // Set a minimum height to make it larger
-        justifyContent: "center", // Align content to center
-    },
-    cardTitle:{
-        fontWeight: "bold"
-    },
-  });
+  container: {
+    flex: 1,
+    padding: 15,
+    backgroundColor: "#f9f9f9",
+  },
+  charCount: {
+    alignSelf: "flex-end",
+    marginBottom: 10,
+    fontSize: 14,
+    color: "#555",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 12,
+    borderRadius: 8,
+    fontSize: 16,
+    backgroundColor: "#fff",
+    marginBottom: 15,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  button: {
+    flex: 1,
+    backgroundColor: "#007BFF",
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginHorizontal: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  clearButton: {
+    flex: 1,
+    backgroundColor: "#FF4500",
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginHorizontal: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  checkboxRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 6,
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  checkbox: {
+    fontSize: 22,
+    color: "#333",
+  },
+  card: {
+    backgroundColor: "white",
+    padding: 12,
+    marginVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 4,
+  },
+  fixedButtonContainer: {
+    position: "absolute",
+    bottom: 15,
+    left: 15,
+    right: 15,
+    backgroundColor: "#6a0dad",
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 6,
+  },
+});
 
 
 
