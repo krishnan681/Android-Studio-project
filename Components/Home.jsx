@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  ActivityIndicator,
   Alert,
   TextInput,
   TouchableOpacity,
@@ -19,6 +18,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import {AuthContext, AuthProvider} from './AuthContext';
 import axios from 'axios';
+import Skeleton from './Skeleton';
 
 const Home = route => {
   const [data, setData] = useState([]);
@@ -28,6 +28,7 @@ const Home = route => {
   const [productName, setProductName] = useState('');
   const [selectedItem, setSelectedItem] = useState('');
   const [profileImage, setProfileImage] = useState(null);
+  const [activeInput, setActiveInput] = useState(null);
 
   const {user, userData} = useContext(AuthContext);
 
@@ -82,6 +83,13 @@ const Home = route => {
       setLoading(false);
     }
   };
+  function toTitleCase(str) {
+    return str
+      .toLowerCase()
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
 
   useEffect(() => {
     let filtered = data;
@@ -137,7 +145,12 @@ const Home = route => {
         <View style={styles.cardRow}>
           <View style={styles.textContainer}>
             <Text style={styles.businessName}>
-              {item.businessname || item.person || 'Name not found'}
+            {firmName &&
+                    item.person.toLowerCase().includes(firmName.toLowerCase())
+                      ? toTitleCase(item.person)
+                      : toTitleCase(
+                          item.businessname ? item.businessname : item.person
+                        )}
             </Text>
             {productName && (
               <Text style={styles.productName}>{item.product}</Text>
@@ -172,16 +185,6 @@ const Home = route => {
       </View>
     );
   };
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        size="large"
-        color="darkyellow"
-        style={styles.loader}
-      />
-    );
-  }
 
   //colors={['#FFD700', '#FFB800']}
 
@@ -218,19 +221,33 @@ const Home = route => {
         </View>
 
         {/* SEARCH INPUT */}
-        <View style={styles.searchBar}>
+        <View style={styles.searchBarContainer}>
+          <TouchableOpacity style={[styles.inputBox, activeInput === "first" ? styles.expanded : styles.shrunken]}
+        onPress={() => setActiveInput("first")}>
           <TextInput
-            placeholder="Search firm name..."
+            placeholder="Search by Firms/Person"
             style={styles.searchInput}
             value={firmName}
             onChangeText={setFirmName}
+            onFocus={() => {
+              setActiveInput("first")
+              setProductName("")
+            }}
           />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.inputBox, activeInput === "second" ? styles.expanded : styles.shrunken]}
+        onPress={() => setActiveInput("second")}>
           <TextInput
-            placeholder="Search product..."
+            placeholder="Search by product"
             style={styles.searchInput}
             value={productName}
             onChangeText={setProductName}
+            onFocus={() => {
+              setActiveInput("second")
+              setFirmName("")
+            }}
           />
+          </TouchableOpacity>          
         </View>
 
         {/* HEADER CONTENT */}
@@ -243,6 +260,7 @@ const Home = route => {
         </View>
       </LinearGradient>
 
+<<<<<<< HEAD
       {/* FLATLIST CONTAINER */}
       <View>
         <FlatList
@@ -252,6 +270,20 @@ const Home = route => {
           contentContainerStyle={{flexGrow: 1}}
           showsVerticalScrollIndicator={false}
         />
+=======
+      <View style={styles.listContainer}>
+        {loading ? (
+          <Skeleton />
+        ) : (
+          <FlatList
+            data={filteredData}
+            renderItem={renderItem}
+            keyExtractor={item => item.id.toString()}
+            contentContainerStyle={{flexGrow: 1}}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+>>>>>>> 10ccca07ec1e523dcdb02dbaab9e737c75d1dac0
       </View>
     </View>
   );
@@ -262,8 +294,13 @@ const styles = StyleSheet.create({
 
   header: {
     padding: 20,
+<<<<<<< HEAD
     // paddingTop: 40,
     // paddingVertical: 30,
+=======
+    paddingTop: 20,
+    paddingVertical: 30,
+>>>>>>> 10ccca07ec1e523dcdb02dbaab9e737c75d1dac0
     borderBottomLeftRadius: 25,
     borderBottomRightRadius: 25,
   },
@@ -281,25 +318,51 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
   },
+<<<<<<< HEAD
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 20,
+=======
+  searchBarContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+  },
+  inputBox:{
+    height: 40,
+    marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    overflow:"hidden",
+    backgroundColor:"#fff"
+>>>>>>> 10ccca07ec1e523dcdb02dbaab9e737c75d1dac0
   },
   searchInput: {
-    flex: 1,
-    backgroundColor: '#FFF',
-    padding: 10,
-    borderRadius: 5,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
+    fontSize: 16,
+    padding: 5,
+    height: "100%",
+    width: "100%",
+  },
+  expanded: {
+    width: "80%",
+    transition: "width 0.2s ease-in-out",
+  },
+  shrunken: {
+    width: "20%",
+    transition: "width 0.2s ease-in-out",
   },
   headercontent: {
     fontSize: 22,
     textAlign: 'center',
     fontWeight: 'bold',
+<<<<<<< HEAD
     marginTop: 20,
+=======
+    marginTop: 10,
+>>>>>>> 10ccca07ec1e523dcdb02dbaab9e737c75d1dac0
   },
   headersub: {
     textAlign: 'center',
@@ -309,9 +372,9 @@ const styles = StyleSheet.create({
   //Profile icon ku styles
 
   profileIconContainer: {
-    width: 30, 
-    height: 30, 
-    borderRadius: 50, 
+    width: 30,
+    height: 30,
+    borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f0f0f0', // Light gray background for icon style
@@ -320,7 +383,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 90, // Circular profile image
-    zIndex:1,
+    zIndex: 1,
   },
   card: {
     flexDirection: 'row',

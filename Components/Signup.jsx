@@ -1,5 +1,5 @@
 // =============================== updated signup page ======================================
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -23,6 +23,7 @@ const Signup = ({ navigation }) => {
   const [myaddress, setAddress] = useState("");
   const [myperson, setPerson] = useState("");
   const [mycity, setCity] = useState("");
+  const [mydoorno, setDoorno] = useState("");
   const [mypincode, setPincode] = useState("");
   const [myproduct, setProduct] = useState("");
   const [mylandLine, setLandLine] = useState("");
@@ -53,7 +54,6 @@ const Signup = ({ navigation }) => {
   const mydiscount = "10";
   const mydescription = "Update Soon";
   const cmpanyPrefix = "M/s.";
-  const navigate = useNavigate();
 
   const [dateTime, setDateTime] = useState("");
 
@@ -69,9 +69,8 @@ const Signup = ({ navigation }) => {
     const minutes = now.getMinutes();
     const ampm = hours >= 12 ? "PM" : "AM";
     hours = hours % 12 || 12; // Convert to 12-hour format
-    const formattedTime = `${hours}:${
-      minutes < 10 ? "0" + minutes : minutes
-    } ${ampm}`;
+    const formattedTime = `${hours}:${minutes < 10 ? "0" + minutes : minutes
+      } ${ampm}`;
 
     // Combine date and time
     setDateTime(`${formattedDate} ${formattedTime}`);
@@ -159,7 +158,7 @@ const Signup = ({ navigation }) => {
         setShowPopup1(false);
       }
     } catch (error) {
-      alert("Unable to verify mobile number.");
+      Alert.alert("Unable to verify mobile number.");
       console.log(error);
     }
   };
@@ -169,12 +168,12 @@ const Signup = ({ navigation }) => {
     e.preventDefault();
 
     if (!myaddress || !mycity || !mypincode || !myprefix || !mymobileno) {
-      alert("Please enter all required fields.");
+      Alert.alert("Please enter all required fields.");
       return;
     }
 
     if (isRegistered) {
-      alert("Mobile number is already registered.");
+      Alert.alert("Mobile number is already registered.");
       return;
     }
     const Data = {
@@ -215,333 +214,274 @@ const Signup = ({ navigation }) => {
       if (jsonResponse.Message) {
         setShowPopup(true);
       } else {
-        alert("Unexpected response from server.");
+        Alert.alert("Unexpected response from server.");
       }
     } catch (error) {
-      alert("Error saving data.");
+      Alert.alert("Error saving data.");
       console.log(error);
     }
   };
 
-  const handleMobileHelptext = () => {
-    setshowMobiletext(true);
-    setShowPersonName(false);
-    setShowPrefixText(false);
-    setshowAddressText(false);
-    setShowBusinesstext(false);
-    setshowCityText(false);
-    setshowPincodeText(false);
-    setshowProductText(false);
-    setshowLandlineText(false);
-    setshowStdText(false);
-    setshowEmailText(false);
-    setshowPromoText(false);
+ const [helpText, setHelpText] = useState({
+    mobile: false,
+    person: false,
+    prefix: false,
+    business: false,
+    address: false,
+    city: false,
+    pincode: false,
+    product: false,
+    landline: false,
+    std: false,
+    email: false,
+    promocode:false,
+  });
+
+  // Reset all help texts
+  const resetAllHelpTexts = () => {
+    setHelpText({
+      mobile: false,
+      person: false,
+      prefix: false,
+      business: false,
+      address: false,
+      city: false,
+      pincode: false,
+      product: false,
+      landline: false,
+      std: false,
+      email: false,
+      promocode:false,
+    });
   };
 
-  const handleBusinessHelptext = () => {
-    setShowBusinesstext(true);
-    setshowMobiletext(false);
-    setShowPersonName(false);
-    setShowPrefixText(false);
-    setshowAddressText(false);
-    setshowCityText(false);
-    setshowPincodeText(false);
-    setshowProductText(false);
-    setshowLandlineText(false);
-    setshowStdText(false);
-    setshowEmailText(false);
-    setshowPromoText(false);
-  };
-  const handlePersonHelptext = () => {
-    checkMobileNumber(mymobileno);
-    setShowPersonName(true);
-    setShowBusinesstext(false);
-    setshowMobiletext(false);
-    setShowPrefixText(false);
-    setshowAddressText(false);
-    setshowCityText(false);
-    setshowPincodeText(false);
-    setshowProductText(false);
-    setshowLandlineText(false);
-    setshowStdText(false);
-    setshowEmailText(false);
-    setshowPromoText(false);
-  };
-  const handleRadio = () => {
-    setShowPersonName(false);
-    setShowBusinesstext(false);
-    setshowMobiletext(false);
-    setShowPrefixText(true);
-    setshowAddressText(false);
-    setshowCityText(false);
-    setshowPincodeText(false);
-    setshowProductText(false);
-    setshowLandlineText(false);
-    setshowStdText(false);
-    setshowEmailText(false);
-    setshowPromoText(false);
-  };
-  const handleAddress = () => {
-    setshowAddressText(true);
-    setShowPersonName(false);
-    setShowBusinesstext(false);
-    setshowMobiletext(false);
-    setShowPrefixText(false);
-    setshowCityText(false);
-    setshowPincodeText(false);
-    setshowProductText(false);
-    setshowLandlineText(false);
-    setshowStdText(false);
-    setshowEmailText(false);
-    setshowPromoText(false);
-  };
-  const handleCity = () => {
-    setshowAddressText(false);
-    setShowPersonName(false);
-    setShowBusinesstext(false);
-    setshowMobiletext(false);
-    setShowPrefixText(false);
-    setshowCityText(true);
-    setshowPincodeText(false);
-    setshowProductText(false);
-    setshowLandlineText(false);
-    setshowStdText(false);
-    setshowEmailText(false);
-    setshowPromoText(false);
-  };
-  const handlePincode = () => {
-    setshowAddressText(false);
-    setShowPersonName(false);
-    setShowBusinesstext(false);
-    setshowMobiletext(false);
-    setShowPrefixText(false);
-    setshowCityText(false);
-    setshowPincodeText(true);
-    setshowProductText(false);
-    setshowLandlineText(false);
-    setshowStdText(false);
-    setshowEmailText(false);
-    setshowPromoText(false);
-  };
-  const handleProduct = () => {
-    setshowAddressText(false);
-    setShowPersonName(false);
-    setShowBusinesstext(false);
-    setshowMobiletext(false);
-    setShowPrefixText(false);
-    setshowCityText(false);
-    setshowPincodeText(false);
-    setshowProductText(true);
-    setshowLandlineText(false);
-    setshowStdText(false);
-    setshowEmailText(false);
-    setshowPromoText(false);
-  };
-  const handleLandLine = () => {
-    setshowAddressText(false);
-    setShowPersonName(false);
-    setShowBusinesstext(false);
-    setshowMobiletext(false);
-    setShowPrefixText(false);
-    setshowCityText(false);
-    setshowPincodeText(false);
-    setshowProductText(false);
-    setshowLandlineText(true);
-    setshowStdText(false);
-    setshowEmailText(false);
-    setshowPromoText(false);
-  };
-  const handleStdCode = () => {
-    setshowAddressText(false);
-    setShowPersonName(false);
-    setShowBusinesstext(false);
-    setshowMobiletext(false);
-    setShowPrefixText(false);
-    setshowCityText(false);
-    setshowPincodeText(false);
-    setshowProductText(false);
-    setshowLandlineText(false);
-    setshowStdText(true);
-    setshowEmailText(false);
-    setshowPromoText(false);
-  };
-  const handleEmail = () => {
-    setshowAddressText(false);
-    setShowPersonName(false);
-    setShowBusinesstext(false);
-    setshowMobiletext(false);
-    setShowPrefixText(false);
-    setshowCityText(false);
-    setshowPincodeText(false);
-    setshowProductText(false);
-    setshowLandlineText(false);
-    setshowStdText(false);
-    setshowEmailText(true);
-    setshowPromoText(false);
-  };
-  const handlePromoCode = () => {
-    setshowAddressText(false);
-    setShowPersonName(false);
-    setShowBusinesstext(false);
-    setshowMobiletext(false);
-    setShowPrefixText(false);
-    setshowCityText(false);
-    setshowPincodeText(false);
-    setshowProductText(false);
-    setshowLandlineText(false);
-    setshowStdText(false);
-    setshowEmailText(false);
-    setshowPromoText(true);
+  // Set specific help text
+  const setHelpTextVisible = (field) => {
+    resetAllHelpTexts();
+    setHelpText((prev) => ({ ...prev, [field]: true }));
   };
 
   return (
 
     <KeyboardAvoidingView
-  behavior={Platform.OS === "ios" ? "padding" : "height"}
-  style={{ flex: 1 }}
->
-    <View style={styles.container}>
-    {/* Gradient Background Only at the Top */}
-    <LinearGradient colors={["#FF69B4", "#FFFFFF"]} style={styles.topSection}>
-      <Image
-        source={require('../src/assets/images/comaany-logo.png')} // Replace with your logo
-        style={styles.logo}
-        resizeMode="contain"
-      />
-    </LinearGradient>
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <View style={styles.container}>
+        {/* Gradient Background Only at the Top */}
+        <LinearGradient colors={["#FF69B4", "#FFFFFF"]} style={styles.topSection}>
+          <Image
+            source={require('../src/assets/images/comaany-logo.png')} // Replace with your logo
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </LinearGradient>
 
-    {/* White Card Covering Bottom Section */}
-    <View style={styles.card}>
-      <Text style={styles.header}>
-        <Text style={styles.signupText}>Sign Up</Text> to create an account.
-      </Text>
+        {/* White Card Covering Bottom Section */}
+        <View style={styles.card}>
+          <Text style={styles.header}>
+            <Text style={styles.signupText}>Sign Up</Text> to create an account.
+          </Text>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+          <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
 
-        <Text style={styles.label}>Mobile Number :</Text>
-        <TextInput
-          placeholder="Mobile Number"
-          keyboardType="number-pad"
-          maxLength={10}
-          style={styles.input}
-          value={mymobileno}
-          onChangeText={(text) => setMobileno(text)}
-          onEndEditing={() => checkMobileNumber(mymobileno)}
-        />
-
-        <Text style={styles.label}> Business Name :</Text>
-        <TextInput
-          placeholder="Person/Business Name"
-          style={styles.input}
-          onChangeText={(text) => setBusinessname(text)}
-          value={mybusinessname}
-        />
-        <Text style={styles.label}> Business Name :</Text>
-        <TextInput
-          placeholder="Person/Business Name"
-          style={styles.input}
-          onChangeText={(text) => setBusinessname(text)}
-          value={mybusinessname}
-        />
-
-        <Text style={styles.label}>Prefix:</Text>
-        <RadioButton.Group
-          onValueChange={(value) => setPrefix(value)}
-          value={myprefix}
-        >
-          <View style={styles.radioContainer}>
-            <View style={styles.radioOption}>
-              <RadioButton value="Mr." />
-              <Text>Mr.</Text>
-            </View>
-            <View style={styles.radioOption}>
-              <RadioButton value="Ms." />
-              <Text>Ms.</Text>
-            </View>
+            <Text style={styles.label}>Mobile Number* :</Text>
+            <TextInput
+              placeholder="Mobile Number"
+              keyboardType="number-pad"
+              maxLength={10}
+              style={styles.input}
+              value={mymobileno}
+              onChangeText={(text) => setMobileno(text)}
+              onEndEditing={() => checkMobileNumber(mymobileno)}
+              onFocus={() => setHelpTextVisible("mobile")}
+            />
+            {helpText.mobile && (
+              <Text style={styles.helpText}>
+                Type 10 digits without Country code (+91), without gap Don't Type Land Line
+              </Text>
+            )}
             
+
+           
+            <Text style={styles.label}> Person Name* :</Text>
+            <TextInput
+              placeholder="Person/Business Name"
+              style={styles.input}
+              onChangeText={(text) => setBusinessname(text)}
+              value={mybusinessname}
+              onFocus={() => setHelpTextVisible("person")}
+
+            />
+            {helpText.person && (
+              <Text style={styles.helpText}>
+                Type Initial at the end
+              </Text>
+            )}
+
+            <Text style={styles.label}>Prefix*:</Text>
+            <RadioButton.Group
+              onValueChange={(value) => {
+                setPrefix(value)
+                setHelpTextVisible("prefix")
+              }}
+              value={myprefix}
+            >
+              <View style={styles.radioContainer}>
+                <View style={styles.radioOption}>
+                  <RadioButton value="Mr." />
+                  <Text>Mr.</Text>
+                </View>
+                <View style={styles.radioOption}>
+                  <RadioButton value="Ms." />
+                  <Text>Ms.</Text>
+                </View>
+
+              </View>
+            </RadioButton.Group>
+            {helpText.prefix && (
+              <Text style={styles.helpText}>Select Mr. For Gents and Ms. for Ladies</Text>
+            )}
+
+            <Text style={styles.label}>Business Name* :</Text>
+            <TextInput
+              placeholder="Person/Business Name"
+              style={styles.input}
+              onChangeText={(text) => setBusinessname(text)}
+              value={mybusinessname}
+              onFocus={() => setHelpTextVisible("business")}
+            />
+            {helpText.business && (
+              <Text style={styles.helpText}>Type Your FirmName or BusinessName</Text>
+            )}            
+
+
+
+            <Text style={styles.label}>City* :</Text>
+            <TextInput
+              placeholder="City"
+              style={styles.input}
+              onChangeText={(text) => setCity(text)}
+              value={mycity}
+              onFocus={() => setHelpTextVisible("cityName")}
+            />
+            {helpText.cityName && (
+              <Text style={styles.helpText}>Type City Name. Don't Use Petnames (Kovai Etc.)</Text>
+            )}
+
+            <Text style={styles.label}>Pincode* :</Text>
+            <TextInput
+              placeholder="Pincode"
+              keyboardType="number-pad"
+              maxLength={6}
+              style={styles.input}
+              onChangeText={(text) => setPincode(text)}
+              value={mypincode}
+              onFocus={() => setHelpTextVisible("pincode")}
+            />
+            {helpText.pincode && (
+              <Text style={styles.helpText}>Type 6 Digits Continioulsy Without Gap</Text>
+            )}
+
+
+            <Text style={styles.label}>Address* :</Text>
+            <TextInput
+              placeholder="Address"
+              style={[styles.input, { height: 80 }]}
+              multiline
+              onChangeText={(text) => setDoorno(text)}
+              value={mydoorno}
+              onFocus={() => setHelpTextVisible("address")}
+            />
+            {helpText.address && (
+              <Text style={styles.helpText}>Type Door Number, Street, Flat No, Appartment Name, Landmark, Area Name etc.</Text>
+            )}
+            
+            <Text style={styles.label}>Product / Service* :</Text>
+            <TextInput
+              placeholder="Product"
+              style={styles.input}
+              onChangeText={(text) => setProduct(text)}
+              value={myproduct}
+              onFocus={() => setHelpTextVisible("product")}
+            />
+            {helpText.product && (
+              <Text style={styles.helpText}>Type Correct & Specific Name of Product/Service offered. Sepparate Each Keyword By Comma. For</Text>
+            )}
+
+            <Text style={styles.label}>Landline Number :</Text>
+            <TextInput
+              placeholder="Landline Number"
+              keyboardType="number-pad"
+              style={styles.input}
+              onChangeText={(text) => setLandLine(text)}
+              value={mylandLine}
+              onFocus={() => setHelpTextVisible("landline")}
+            />
+
+            {helpText.landline && (
+              <Text style={styles.helpText}>Type Only Landline, if Available. Don't Type Mobile Number here.</Text>
+            )}
+
+            <Text style={styles.label}>STD Code :</Text>
+            <TextInput
+              placeholder="STD Code"
+              keyboardType="number-pad"
+              style={styles.input}
+              onChangeText={(text) => setLcode(text)}
+              value={myLcode}
+              onFocus={() => setHelpTextVisible("std")}
+            />
+            {helpText.std && (
+              <Text style={styles.helpText}>Type Only Landline, if Available. Don't Type Mobile Number here.</Text>
+            )}
+
+            <Text style={styles.label}>Email :</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="example@mail.com"
+              keyboardType="email-address"
+              value={myemail}
+              onChangeText={(text) => setEmail(text)}
+              autoCapitalize="none"
+              onFocus={() => setHelpTextVisible("email")}
+            />
+
+            {helpText.email && (
+              <Text style={styles.helpText}>Type Correctly, Only If Available</Text>
+            )}
+            
+            <Text style={styles.label}>Promo-Code :</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your Promo code"
+              keyboardType="text"
+              value={myemail}
+              onChangeText={(text) => setPromoCode(text)}
+              autoCapitalize="none"
+              onFocus={() => setHelpTextVisible("promocode")}
+            />
+            {helpText.promocode && (
+              <Text style={styles.helpText}>Enter name or Number Who is referred to this App!</Text>
+            )}
+
+            <TouchableOpacity style={styles.signupButton} onPress={insertRecord}>
+              <Text style={styles.signupButtonText}>Submit</Text>
+            </TouchableOpacity>
+          </ScrollView>
+
+          <View style={styles.loginContainer}>
+            <Text style={styles.loginText}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+              <Text style={styles.loginLink}>Login</Text>
+            </TouchableOpacity>
           </View>
-        </RadioButton.Group>
 
-        <Text style={styles.label}>Address :</Text>
-        <TextInput
-          placeholder="Address"
-          style={[styles.input, { height: 80 }]}
-          multiline
-          onChangeText={(text) => setDoorno(text)}
-          value={mydoorno}
-        />
-
-        <Text style={styles.label}>City :</Text>
-        <TextInput
-          placeholder="City"
-          style={styles.input}
-          onChangeText={(text) => setCity(text)}
-          value={mycity}
-        />
-
-        <Text style={styles.label}>Pincode :</Text>
-        <TextInput
-          placeholder="Pincode"
-          keyboardType="number-pad"
-          maxLength={6}
-          style={styles.input}
-          onChangeText={(text) => setPincode(text)}
-          value={mypincode}
-        />
-
-        <Text style={styles.label}>Product / Service :</Text>
-        <TextInput
-          placeholder="Product"
-          style={styles.input}
-          onChangeText={(text) => setProduct(text)}
-          value={myproduct}
-        />
-
-        <Text style={styles.label}>Landline Number :</Text>
-        <TextInput
-          placeholder="Landline Number"
-          keyboardType="number-pad"
-          style={styles.input}
-          onChangeText={(text) => setLandLine(text)}
-          value={mylandLine}
-        />
-
-        <Text style={styles.label}>STD Code :</Text>
-        <TextInput
-          placeholder="STD Code"
-          keyboardType="number-pad"
-          style={styles.input}
-          onChangeText={(text) => setLcode(text)}
-          value={myLcode}
-        />
-
-        <Text style={styles.label}>Email :</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="example@mail.com"
-          keyboardType="email-address"
-          value={myemail}
-          onChangeText={(text) => setEmail(text)}
-          autoCapitalize="none"
-        />
-
-        <TouchableOpacity style={styles.signupButton} onPress={insertRecord}>
-          <Text style={styles.signupButtonText}>Submit</Text>
-        </TouchableOpacity>
-      </ScrollView>
-
-      <View style={styles.loginContainer}>
-        <Text style={styles.loginText}>Already have an account? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.loginLink}>Login</Text>
-        </TouchableOpacity>
+        </View>
       </View>
-      
-    </View>
-  </View>
 
-  </KeyboardAvoidingView>
-  
+    </KeyboardAvoidingView>
+
   );
 };
 
@@ -550,7 +490,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
-  
+
   topSection: {
     height: "20%", // Covers the top area
     justifyContent: "center",
@@ -559,6 +499,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
   },
   logo: {
+    top:-20,
     width: 150,
     height: 50,
   },
@@ -567,13 +508,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    padding: 20,
-    marginTop: -20,
-    alignItems: "center",
+    padding: 10,
+    marginTop: -50,
     elevation: 5,
     minHeight: "75%",  // Ensure enough space
   },
-  
+
   header: {
     fontSize: 22,
     fontWeight: "bold",
@@ -582,36 +522,35 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   signupText: {
-    color: "#FF69B4",
+    color: "#aa336a",
   },
   label: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
     marginBottom: 8,
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "#000000",
+    borderRadius: 5,
+    marginVertical: 8,
     paddingHorizontal: 10,
     height: 50,
-    marginBottom: 10,
-    width: "100%",
-  },
-  radioContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-    marginBottom: 10,
   },
   radioOption: {
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: 8,
+  },
+  radioContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent:"space-evenly"
   },
   signupButton: {
     width: "100%",
     height: 50,
-    backgroundColor: "#FF69B4",
+    backgroundColor: "#aa336a",
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
@@ -620,22 +559,30 @@ const styles = StyleSheet.create({
   signupButtonText: {
     color: "white",
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 20,
   },
   loginContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     marginTop: 15,
-    
+
   },
   loginText: {
-    color: "#888",
+    color: "#000",
+    fontSize:20,
+
   },
   loginLink: {
-    color: "#FF69B4",
+    color: "#aa336a",
     fontWeight: "bold",
+    fontSize:20
+
   },
+  helpText:{
+    color:"red",
+    fontSize:16,
+  }
 });
 
 

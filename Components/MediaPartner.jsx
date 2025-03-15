@@ -13,6 +13,7 @@ import RNPickerSelect from "react-native-picker-select";
 import { RadioButton } from "react-native-paper";
 import axios from "axios";
 import { AuthContext } from "./AuthContext";
+import LinearGradient from 'react-native-linear-gradient';
 
 const MediaPartner = ({ navigation }) => {
   const { user, userData } = useContext(AuthContext); // Use userData for auth
@@ -183,12 +184,12 @@ const MediaPartner = ({ navigation }) => {
     e.preventDefault();
   
     if (!mymobileno) {
-      alert("Please enter all required fields.");
+      Alert.alert("Please enter all required fields.");
       return;
     }
   
     if (isRegistered) {
-      alert("Mobile number is already registered.");
+      Alert.alert("Mobile number is already registered.");
       return;
     }
   
@@ -234,10 +235,10 @@ const MediaPartner = ({ navigation }) => {
         await insertCount(userData?.id); // Update count for user ID
         await insertbusinessName(); // Any additional logic you need
       } else {
-        alert("Unexpected response from server.");
+        Alert.alert("Unexpected response from server.");
       }
     } catch (error) {
-      alert("Error saving data.");
+      Alert.alert("Error saving data.");
       console.log(error);
     }
   };
@@ -343,7 +344,10 @@ const MediaPartner = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <LinearGradient colors={['#FF69B4', '#FFFFFF']} style={styles.header}>
       <Text style={styles.headerText}>Media Partner</Text>
+      </LinearGradient>
+      
       <View style={styles.formContainer}>
         <ScrollView>
           {/* Mobile Number */}
@@ -360,7 +364,7 @@ const MediaPartner = ({ navigation }) => {
           />
           {helpText.mobile && (
             <Text style={styles.helpText}>
-              Enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.
+              Type 10 digits without Country code (+91), without gap Don't Type Land Line
             </Text>
           )}
 
@@ -374,28 +378,34 @@ const MediaPartner = ({ navigation }) => {
             onFocus={() => setHelpTextVisible("person")}
           />
           {helpText.person && (
-            <Text style={styles.helpText}>Enter the person's full name.</Text>
+            <Text style={styles.helpText}>Type Initial at the end</Text>
           )}
-
           {/* Prefix */}
           <View style={styles.prefixcontainer}>
             <Text style={styles.label}>*Prefix:</Text>
             <RadioButton.Group
-              onValueChange={(value) => setPrefix(value)}
+              onValueChange={(value) => {
+                setPrefix(value)
+                setHelpTextVisible("prefix")
+              }}
               value={myprefix}
             >
               <View style={styles.radioContainer}>
                 <View style={styles.radioOption}>
-                  <RadioButton value="Mr." />
+            
+              <RadioButton value="Mr."  />
                   <Text>Mr.</Text>
                 </View>
                 <View style={styles.radioOption}>
-                  <RadioButton value="Ms." />
+                  <RadioButton value="Ms."  />
                   <Text>Ms.</Text>
                 </View>
               </View>
             </RadioButton.Group>
           </View>
+          {helpText.prefix && (
+            <Text style={styles.helpText}>Select Mr. For Gents and Ms. for Ladies</Text>
+          )}
 
           {/* Business Name */}
           <Text style={styles.label}>*Firm / Business Name :</Text>
@@ -404,11 +414,13 @@ const MediaPartner = ({ navigation }) => {
             style={styles.input}
             value={mybusinessname}
             onChangeText={handleBusinessName}
-            onFocus={() => setHelpTextVisible("businessName")}
+            onFocus={() => setHelpTextVisible("business")}
           />
 
+          {helpText.business && (
+            <Text style={styles.helpText}>Type Your FirmName or BusinessName</Text>
+          )}
           
-
           {/* City */}
           <Text style={styles.label}>*City :</Text>
           <TextInput
@@ -418,6 +430,12 @@ const MediaPartner = ({ navigation }) => {
             onChangeText={handleCityName}
             onFocus={() => setHelpTextVisible("cityName")}
           />
+
+          {helpText.cityName && (
+            <Text style={styles.helpText}>Type City Name. Don't Use Petnames (Kovai Etc.)</Text>
+          )}
+         
+          
 
           {/* Pincode */}
           <Text style={styles.label}>*Pincode :</Text>
@@ -430,6 +448,10 @@ const MediaPartner = ({ navigation }) => {
             onChangeText={(text) => setPincode(text)}
             onFocus={() => setHelpTextVisible("pincode")}
           />
+           {helpText.pincode && (
+            <Text style={styles.helpText}>Type 6 Digits Continioulsy Without Gap</Text>
+          )}
+          
 
           {/* Address */}
           <Text style={styles.label}>*Address :</Text>
@@ -442,6 +464,11 @@ const MediaPartner = ({ navigation }) => {
             onFocus={() => setHelpTextVisible("address")}
           />
 
+          {helpText.address && (
+            <Text style={styles.helpText}>Type Door Number, Street, Flat No, Appartment Name, Landmark, Area Name etc.</Text>
+          )}
+          
+
           {/* Product / Service */}
           <Text style={styles.label}>*Product / Service :</Text>
           <TextInput
@@ -451,6 +478,11 @@ const MediaPartner = ({ navigation }) => {
             onChangeText={(text) => setProduct(text)}
             onFocus={() => setHelpTextVisible("product")}
           />
+
+          {helpText.product && (
+            <Text style={styles.helpText}>Type Correct & Specific Name of Product/Service offered. Sepparate Each Keyword By Comma. For</Text>
+          )}
+          
 
           {/* Landline */}
           <Text style={styles.label}>Landline Number :</Text>
@@ -463,6 +495,11 @@ const MediaPartner = ({ navigation }) => {
             onFocus={() => setHelpTextVisible("landline")}
           />
 
+          {helpText.landline && (
+            <Text style={styles.helpText}>Type Only Landline, if Available. Don't Type Mobile Number here.</Text>
+          )}
+         
+
           {/* STD Code */}
           <Text style={styles.label}>STD Code :</Text>
           <TextInput
@@ -473,6 +510,11 @@ const MediaPartner = ({ navigation }) => {
             onChangeText={(text) => setLcode(text)}
             onFocus={() => setHelpTextVisible("std")}
           />
+
+          {helpText.std && (
+            <Text style={styles.helpText}>Type Only Landline, if Available. Don't Type Mobile Number here.</Text>
+          )}
+         
 
           {/* Email */}
           <Text style={styles.label}>Email :</Text>
@@ -485,6 +527,10 @@ const MediaPartner = ({ navigation }) => {
             autoCapitalize="none"
             onFocus={() => setHelpTextVisible("email")}
           />
+
+          {helpText.email && (
+            <Text style={styles.helpText}>Type Correctly, Only If Available</Text>
+          )}
 
           {/* Submit Button */}
           <TouchableOpacity style={styles.button} onPress={insertRecord}>
@@ -505,11 +551,14 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: "#000000",
   },
+  header:{
+    padding:20,
+  },
   headerText: {
     textAlign: "center",
     fontSize: 50,
     fontWeight: "500",
-    color: "#6a0dad",
+    color: "#aa336a",
   },
   formContainer: {
     flex: 1,
@@ -528,6 +577,7 @@ const styles = StyleSheet.create({
   radioContainer: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent:"space-evenly"
   },
   label: {
     fontSize: 18,
@@ -535,7 +585,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   input: {
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: "#000000",
     borderRadius: 5,
     marginVertical: 8,
@@ -543,7 +593,7 @@ const styles = StyleSheet.create({
     height: 50,
   },
   button: {
-    backgroundColor: "#6a0dad",
+    backgroundColor: "#aa336a",
     borderRadius: 5,
     paddingVertical: 15,
     alignItems: "center",
@@ -554,6 +604,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
+  helpText:{
+    color:"red",
+    fontSize:16,
+  }
 });
 
 export default MediaPartner;

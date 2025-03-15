@@ -18,21 +18,21 @@ const Settings = ({ navigation }) => {
       <Text style={styles.sectionTitle}>GENERAL</Text>
       {isLoggedIn && (
         <TouchableOpacity style={styles.option} onPress={() => navigation.navigate('Account')}>
-          <Icon name="person-outline" size={24} color="#333" />
+          <Icon name="person-outline" size={24} color="#aa336a" />
           <Text style={styles.optionText}>Account</Text>
         </TouchableOpacity>
       )}
       <TouchableOpacity style={styles.option} onPress={() => navigation.navigate('Notifications')}>
-        <Icon name="notifications-outline" size={24} color="#333" />
+        <Icon name="notifications-outline" size={24} color="#aa336a" />
         <Text style={styles.optionText}>Notifications</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.option} onPress={() => navigation.navigate('Coupons')}>
-        <Icon name="gift-outline" size={24} color="#333" />
+        <Icon name="gift-outline" size={24} color="#aa336a" />
         <Text style={styles.optionText}>Coupons</Text>
       </TouchableOpacity>
       {isLoggedIn && (
         <TouchableOpacity style={styles.option} onPress={() => logout(navigation)}>
-          <Icon name="log-out-outline" size={24} color="red" />
+          <Icon name="log-out-outline" size={24} color="#aa336a" />
           <Text style={[styles.optionText, { color: 'red' }]}>Logout</Text>
         </TouchableOpacity>
       )}
@@ -40,11 +40,11 @@ const Settings = ({ navigation }) => {
       {/* Feedback Section */}
       <Text style={styles.sectionTitle}>FEEDBACK</Text>
       <TouchableOpacity style={styles.option} onPress={() => navigation.navigate('ReportBug')}>
-        <Icon name="alert-circle-outline" size={24} color="#333" />
+        <Icon name="alert-circle-outline" size={24} color="#aa336a" />
         <Text style={styles.optionText}>Report a Bug</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.option} onPress={() => navigation.navigate('SendFeedback')}>
-        <Icon name="send-outline" size={24} color="#333" />
+        <Icon name="send-outline" size={24} color="#aa336a" />
         <Text style={styles.optionText}>Send Feedback</Text>
       </TouchableOpacity>
 
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#aa336a',
   },
   sectionTitle: {
     marginTop: 20,
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     marginLeft: 20,
     fontSize: 14,
     fontWeight: 'bold',
-    color: 'gray',
+    color: '#aa336a',
   },
   option: {
     flexDirection: 'row',
@@ -100,13 +100,13 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 16,
     marginLeft: 10,
-    color: '#333',
+    color: '#aa336a',
   },
   authButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#6B21A8',
+    backgroundColor: '#aa336a',
     padding: 15,
     borderRadius: 10,
     marginHorizontal: 20,

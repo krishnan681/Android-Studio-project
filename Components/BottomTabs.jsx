@@ -10,6 +10,7 @@ import Settings from "./Settings";
 import CategorywisePromotion from "./CategorywisePromotion";
 import NearbyPromotion from "./NearbyPromotion";
 import MediaPartner from "./MediaPartner";
+import { Text } from "react-native-gesture-handler";
 
 const Tab = createBottomTabNavigator();
 
@@ -38,10 +39,14 @@ const BottomTabs = () => {
             default:
               iconName = "question-circle";
           }
+<<<<<<< HEAD
           return <FontAwesome name={iconName} size={20} color={color} />;
+=======
+          return <FontAwesome name={iconName} size={30} color={color} />;
+>>>>>>> 10ccca07ec1e523dcdb02dbaab9e737c75d1dac0
         },
-        tabBarActiveTintColor: "black",
-        tabBarInactiveTintColor: "gray",
+        tabBarActiveTintColor: "#aa336a",
+        tabBarInactiveTintColor: "#000",
         tabBarStyle: styles.tabBarStyle,
       })}
     >
@@ -64,6 +69,9 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     height: 60,
   },
+  tabBarText:{
+    fontSize:20
+  }
 });
 
 export default BottomTabs;

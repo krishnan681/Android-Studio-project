@@ -29,6 +29,12 @@ const CategoryPromotionScreen = () => {
   const [customMessage, setCustomMessage] = useState(
     'I Saw Your Listing in SIGNPOST PHONE BOOK. I am Interested in your Products. Please Send Details/Call Me. (Sent Through Signpost PHONE BOOK)',
   );
+<<<<<<< HEAD
+=======
+
+  
+
+>>>>>>> 10ccca07ec1e523dcdb02dbaab9e737c75d1dac0
   // Fetch filtered product data
   const fetchProductData = async name => {
     if (!name) return;
