@@ -13,6 +13,9 @@ import Login from "./Components/Login";
 import Signup from "./Components/Signup";
 import Details from "./Components/Details";
 import Profile from "./Components/Profile";
+import Coupons from "./Components/Coupons";
+import AdminPage from "./Components/Admin/AdminPage";
+import UserGuide from "./Components/UserGuide";
 
 const Stack = createStackNavigator();
  
@@ -46,19 +49,23 @@ const App = () => {
 
   return (
     <AuthProvider>
-      <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <NavigationContainer>
+      <Stack.Navigator>
         {isFirstLaunch && (
-          <Stack.Screen name="OnboardingScreen" component={OnboardingScreen} />
+          <Stack.Screen name="OnboardingScreen" component={OnboardingScreen}  options={{ headerShown: false }} />
         )}
-          <Stack.Screen name="BottomTabs" component={BottomTabs} />
-          <Stack.Screen name="Login" component={Login} />
-          <Stack.Screen name="Signup" component={Signup} />
-          <Stack.Screen name="Details" component={Details} Options={{ headerShown: true }} />
-          <Stack.Screen name="Profile" component={Profile} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </AuthProvider>
+        <Stack.Screen name="BottomTabs" component={BottomTabs} options={{ headerShown: false }} />
+        <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+        <Stack.Screen name="Signup" component={Signup} options={{ headerShown: false }} />
+        <Stack.Screen name="Details" component={Details} options={{ headerShown: true }} />
+        <Stack.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
+        <Stack.Screen name="Coupons" component={Coupons} options={{ headerShown: true }} />
+        <Stack.Screen name="AdminPage" component={AdminPage} options={{ headerShown: true }} />
+        <Stack.Screen name="UserGuide" component={UserGuide} options={{ headerShown: true }} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  </AuthProvider>
+  
   );
 };
 

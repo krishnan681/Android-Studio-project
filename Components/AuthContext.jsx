@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    if (password !== "Signpost") {
+    if (password !== "signpost") {
       Alert.alert("Invalid Password", "Please enter the correct password.");
       return;
     }

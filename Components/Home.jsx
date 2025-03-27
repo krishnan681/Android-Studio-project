@@ -86,9 +86,9 @@ const Home = route => {
   function toTitleCase(str) {
     return str
       .toLowerCase()
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 
   useEffect(() => {
@@ -106,20 +106,34 @@ const Home = route => {
   }, [firmName, productName, data]);
 
   const renderItem = ({item}) => {
-    //................................................................................................................
-    // Dial button and more button  click panna nadakura function
-
     const handleMorePress = item => {
       if (user) {
         navigation.navigate('Details', {selectedItem: item});
       } else {
-        Alert.alert('Login Required', 'You need to log in to make a call.', [
-          {text: 'OK', onPress: () => navigation.navigate('Login')},
-        ]);
+        Alert.alert(
+          'Login Required',
+          'You need to log in to View the details.',
+          [{text: 'OK', onPress: () => navigation.navigate('Login')}],
+        );
       }
     };
 
-    const OpenDialpad = dialedNumber => {
+
+    const handleEnquiry = item => {
+      if (user) {
+        navigation.navigate('Details', {selectedItem: item});
+      } else {
+        Alert.alert(
+          'Login Required',
+          'You need to log in to View the details.',
+          [{text: 'OK', onPress: () => navigation.navigate('Login')}],
+        );
+      }
+    };
+
+    
+
+    const openDialpad = dialedNumber => {
       if (!user || user === '') {
         Alert.alert('Login Required', 'You need to log in to make a call.', [
           {text: 'OK', onPress: () => navigation.navigate('Login')},
@@ -129,28 +143,26 @@ const Home = route => {
 
       const phoneUrl = `tel:${dialedNumber}`;
 
-      Linking.canOpenURL(phoneUrl)
-        .then(supported => {
-          if (supported) {
-            Linking.openURL(phoneUrl);
-          } else {
-            Alert.alert('Error', 'Dial pad is not supported on this device.');
-          }
-        })
-        .catch(err => console.error('An error occurred', err));
+      Linking.openURL(phoneUrl).catch(err => {
+        console.error('An error occurred', err);
+        Alert.alert('Error', 'Dial pad not supported on this device.');
+      });
     };
 
     return (
-      <View style={styles.card}>
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => handleMorePress(item)}
+        activeOpacity={0.7}>
         <View style={styles.cardRow}>
           <View style={styles.textContainer}>
             <Text style={styles.businessName}>
-            {firmName &&
-                    item.person.toLowerCase().includes(firmName.toLowerCase())
-                      ? toTitleCase(item.person)
-                      : toTitleCase(
-                          item.businessname ? item.businessname : item.person
-                        )}
+              {firmName &&
+              item.person.toLowerCase().includes(firmName.toLowerCase())
+                ? toTitleCase(item.person)
+                : toTitleCase(
+                    item.businessname ? item.businessname : item.person,
+                  )}
             </Text>
             {productName && (
               <Text style={styles.productName}>{item.product}</Text>
@@ -169,20 +181,26 @@ const Home = route => {
               </Text>
             )}
             <View style={styles.buttonContainer}>
+              {/* Dial Button */}
               <TouchableOpacity
                 style={styles.button}
-                onPress={() => OpenDialpad(item.mobileno)}>
+                onPress={e => {
+                  e.stopPropagation(); // Prevents navigation when clicking "Dial"
+                  openDialpad(item.mobileno);
+                }}>
                 <Text style={styles.buttonText}>Dial</Text>
               </TouchableOpacity>
+
+              {/* Enquiry Button */}
               <TouchableOpacity
-                style={styles.detailButton}
-                onPress={() => handleMorePress(item)}>
-                <Text style={styles.buttonText}>More</Text>
+                style={[styles.enquirybutton, {marginLeft: 10}]} // Adds spacing between buttons
+                onPress={() => handleEnquiry(item)}>
+                <Text style={styles.buttonText}>Enquiry</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -222,32 +240,40 @@ const Home = route => {
 
         {/* SEARCH INPUT */}
         <View style={styles.searchBarContainer}>
-          <TouchableOpacity style={[styles.inputBox, activeInput === "first" ? styles.expanded : styles.shrunken]}
-        onPress={() => setActiveInput("first")}>
-          <TextInput
-            placeholder="Search by Firms/Person"
-            style={styles.searchInput}
-            value={firmName}
-            onChangeText={setFirmName}
-            onFocus={() => {
-              setActiveInput("first")
-              setProductName("")
-            }}
-          />
+          <TouchableOpacity
+            style={[
+              styles.inputBox,
+              activeInput === 'first' ? styles.expanded : styles.shrunken,
+            ]}
+            onPress={() => setActiveInput('first')}>
+            <TextInput
+              placeholder="Search by Firms/Person"
+              style={styles.searchInput}
+              value={firmName}
+              onChangeText={setFirmName}
+              onFocus={() => {
+                setActiveInput('first');
+                setProductName('');
+              }}
+            />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.inputBox, activeInput === "second" ? styles.expanded : styles.shrunken]}
-        onPress={() => setActiveInput("second")}>
-          <TextInput
-            placeholder="Search by product"
-            style={styles.searchInput}
-            value={productName}
-            onChangeText={setProductName}
-            onFocus={() => {
-              setActiveInput("second")
-              setFirmName("")
-            }}
-          />
-          </TouchableOpacity>          
+          <TouchableOpacity
+            style={[
+              styles.inputBox,
+              activeInput === 'second' ? styles.expanded : styles.shrunken,
+            ]}
+            onPress={() => setActiveInput('second')}>
+            <TextInput
+              placeholder="Search by product"
+              style={styles.searchInput}
+              value={productName}
+              onChangeText={setProductName}
+              onFocus={() => {
+                setActiveInput('second');
+                setFirmName('');
+              }}
+            />
+          </TouchableOpacity>
         </View>
 
         {/* HEADER CONTENT */}
@@ -260,17 +286,6 @@ const Home = route => {
         </View>
       </LinearGradient>
 
-<<<<<<< HEAD
-      {/* FLATLIST CONTAINER */}
-      <View>
-        <FlatList
-          data={filteredData}
-          renderItem={renderItem}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={{flexGrow: 1}}
-          showsVerticalScrollIndicator={false}
-        />
-=======
       <View style={styles.listContainer}>
         {loading ? (
           <Skeleton />
@@ -283,7 +298,6 @@ const Home = route => {
             showsVerticalScrollIndicator={false}
           />
         )}
->>>>>>> 10ccca07ec1e523dcdb02dbaab9e737c75d1dac0
       </View>
     </View>
   );
@@ -294,13 +308,8 @@ const styles = StyleSheet.create({
 
   header: {
     padding: 20,
-<<<<<<< HEAD
-    // paddingTop: 40,
-    // paddingVertical: 30,
-=======
     paddingTop: 20,
     paddingVertical: 30,
->>>>>>> 10ccca07ec1e523dcdb02dbaab9e737c75d1dac0
     borderBottomLeftRadius: 25,
     borderBottomRightRadius: 25,
   },
@@ -318,51 +327,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
   },
-<<<<<<< HEAD
-  searchBar: {
+  searchBarContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
-=======
-  searchBarContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    justifyContent: 'center',
     padding: 10,
   },
-  inputBox:{
+  inputBox: {
     height: 40,
     marginHorizontal: 5,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: '#ccc',
     borderRadius: 5,
-    overflow:"hidden",
-    backgroundColor:"#fff"
->>>>>>> 10ccca07ec1e523dcdb02dbaab9e737c75d1dac0
+    overflow: 'hidden',
+    backgroundColor: '#fff',
   },
   searchInput: {
     fontSize: 16,
     padding: 5,
-    height: "100%",
-    width: "100%",
+    height: '100%',
+    width: '100%',
   },
   expanded: {
-    width: "80%",
-    transition: "width 0.2s ease-in-out",
+    width: '80%',
+    transition: 'width 0.2s ease-in-out',
   },
   shrunken: {
-    width: "20%",
-    transition: "width 0.2s ease-in-out",
+    width: '20%',
+    transition: 'width 0.2s ease-in-out',
   },
   headercontent: {
     fontSize: 22,
     textAlign: 'center',
     fontWeight: 'bold',
-<<<<<<< HEAD
-    marginTop: 20,
-=======
     marginTop: 10,
->>>>>>> 10ccca07ec1e523dcdb02dbaab9e737c75d1dac0
   },
   headersub: {
     textAlign: 'center',
@@ -427,7 +425,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    gap: 10,
+     
   },
   button: {
     backgroundColor: '#6A0DAD',
@@ -446,6 +444,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
+
+  
   businessName: {fontSize: 18, fontWeight: 'bold'},
   locationText: {fontSize: 14, color: 'gray'},
   mobile: {fontSize: 16, color: '#333'},
@@ -455,13 +455,22 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginTop: 10,
   },
+
+  enquirybutton: {
+    backgroundColor: 'green',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+
+
   detailButton: {
     backgroundColor: '#28a745',
     padding: 10,
     borderRadius: 5,
     marginTop: 10,
   },
-  buttonText: {color: '#fff', textAlign: 'center'},
+ 
   loader: {flex: 1, justifyContent: 'center', alignItems: 'center'},
   inputContainer: {flexDirection: 'row', padding: 10},
   input: {flex: 1, borderWidth: 1, borderRadius: 5, padding: 10, margin: 5},

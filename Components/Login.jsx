@@ -15,11 +15,17 @@ const Login = ({navigation}) => {
   const {Login} = useContext(AuthContext);
   const [mobileno, setMobileno] = useState('');
   const [password, setPassword] = useState('');
+  const [secureText, setSecureText] = useState(true); // State for password visibility
 
   const handleLogin = () => {
     Login(mobileno, password, navigation);
     setMobileno('');
     setPassword('');
+    setSecureText(true); // Reset password visibility on login
+  };
+
+  const handlePassword = (text) => {
+    setPassword(text.toLowerCase());
   };
 
   return (
@@ -27,11 +33,10 @@ const Login = ({navigation}) => {
       {/* Gradient Background Only at the Top */}
       <LinearGradient colors={['#FF69B4', '#FFFFFF']} style={styles.topSection}>
         <Image
-          source={require('../src/assets/images/comaany-logo.png')} // Replace with your logo
+          source={require('../src/assets/images/comaany-logo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
-
         <Text style={styles.cpyname}>Signpost Phone Book</Text>
       </LinearGradient>
 
@@ -59,16 +64,26 @@ const Login = ({navigation}) => {
           <TextInput
             style={styles.input}
             placeholder="Password"
-            secureTextEntry
+            secureTextEntry={secureText} // Toggle password visibility
             placeholderTextColor="#999"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={handlePassword}
           />
+          
+          {/* Show Eye Icon Only If Password is Entered */}
+          {password.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSecureText(!secureText)}
+              style={styles.eyeIcon}
+            >
+              <Icon name={secureText ? 'eye-slash' : 'eye'} size={20} color="#555" />
+            </TouchableOpacity>
+          )}
         </View>
 
         <TouchableOpacity>
           <Text style={styles.forgotPassword}>
-            Note: Your Password is Signpost
+            Note: Your Password is signpost
           </Text>
         </TouchableOpacity>
 
@@ -93,7 +108,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   topSection: {
-    height: '35%', // Covers the top area
+    height: '35%',
     justifyContent: 'center',
     alignItems: 'center',
     borderBottomLeftRadius: 30,
@@ -103,10 +118,9 @@ const styles = StyleSheet.create({
     width: 150,
     height: 50,
   },
-
-  cpyname:{
+  cpyname: {
     fontSize: 25,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginTop: 10,
   },
   card: {
@@ -115,7 +129,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     padding: 20,
-    marginTop: -20, // Pull the card slightly up for better design
+    marginTop: -20,
     alignItems: 'center',
     elevation: 5,
   },
@@ -127,7 +141,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   loginText: {
-    color: '#FF69B4', // Pink text
+    color: '#FF69B4',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -145,6 +159,9 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 50,
     fontSize: 16,
+  },
+  eyeIcon: {
+    padding: 10,
   },
   forgotPassword: {
     color: '#FF69B4',

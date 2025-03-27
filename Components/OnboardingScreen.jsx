@@ -1,15 +1,14 @@
 import React from 'react';
-import { View, StyleSheet, Text, Dimensions } from 'react-native';
+import {View, StyleSheet, Text, Dimensions} from 'react-native';
 import Onboarding from 'react-native-onboarding-swiper';
 import LottieView from 'lottie-react-native';
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
-const OnboardingScreen = ({ navigation }) => {
-  
+const OnboardingScreen = ({navigation}) => {
   // Corrected function
   const handleDone = () => {
-    navigation.navigate("BottomTabs");
+    navigation.navigate('BottomTabs');
   };
 
   return (
@@ -18,8 +17,10 @@ const OnboardingScreen = ({ navigation }) => {
         onDone={handleDone}
         onSkip={handleDone}
         pages={[
+
+          // Onboarding Screens page 1
           {
-            backgroundColor: '#a7f3d0',
+            backgroundColor: '#FFEDFA',
             image: (
               <View style={styles.lottieContainer}>
                 <LottieView
@@ -31,39 +32,84 @@ const OnboardingScreen = ({ navigation }) => {
               </View>
             ),
             title: 'Welcome!',
-            subtitle: 'Experience smooth onboarding with animations!',
+            subtitle: 'Find Mobile Number & Dial!',
           },
 
+
+          // Onboarding Screens page 2
+
           {
-            backgroundColor: '#fef3c7',
+            backgroundColor: '#FFB8E0',
+            image: (
+              <View style={styles.lottieContainer}>
+                <LottieView
+                  source={require('../src/assets/animations/OnBoarding Animations/Animation - 1743054865609.json')} // Ensure correct path
+                  autoPlay
+                  loop
+                  style={styles.lottie}
+                />
+              </View>
+            ),
+            title: 'DataBase of Millions of Mobile Users Pan India!',
+            // subtitle: 'Navigate through the app effortlessly!',
+          },
+          
+          // Onboarding Screens page 3
+
+          {
+            backgroundColor: '#EC7FA9',
             image: (
               <View style={styles.lottieContainer}>
                 <LottieView
                   source={require('../src/assets/animations/OnBoarding Animations/Animation - 1741767350475.json')} // Ensure correct path
+
                   autoPlay
                   loop
                   style={styles.lottie}
                 />
               </View>
             ),
-            title: 'Easy Navigation',
-            subtitle: 'Navigate through the app effortlessly!',
+            title: 'Business Promotion to nearby Areas (for B2C, D2C)',
+            // subtitle: 'Start using the app now!',
           },
+          
+          // Onboarding Screens page 4
 
           {
-            backgroundColor: '#a78bfa',
+            backgroundColor: '#BE5985',
             image: (
               <View style={styles.lottieContainer}>
                 <LottieView
                   source={require('../src/assets/animations/OnBoarding Animations/Animation - 1741773493053.json')} // Ensure correct path
+
+                  // source={require('../src/assets/animations/OnBoarding Animations/Animation - 1741773493053.json')} // Ensure correct path
                   autoPlay
                   loop
                   style={styles.lottie}
                 />
               </View>
             ),
-            title: 'Let’s Begin!',
-            subtitle: 'Start using the app now!',
+            title: 'Category wise Promotion in entire city (for B2B)',
+            // subtitle: 'Start using the app now!',
+          },
+
+          
+          // Onboarding Screens page 5
+
+          {
+            backgroundColor: 'white',
+            image: (
+              <View style={styles.lottieContainer}>
+                <LottieView
+                  source={require('../src/assets/animations/OnBoarding Animations/Animation - 1743057436288.json')} // Ensure correct path
+                  autoPlay
+                  loop
+                  style={styles.lottie}
+                />
+              </View>
+            ),
+            title: 'to Signpostphonebook!',
+            subtitle: 'Dive into the experience today!',
           },
         ]}
       />

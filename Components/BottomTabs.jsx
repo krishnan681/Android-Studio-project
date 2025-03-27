@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { StyleSheet } from "react-native";
 import { AuthContext } from "./AuthContext";
+import { Alert } from "react-native";
 
 // Import Screens
 import Home from "./Home";
@@ -10,11 +11,24 @@ import Settings from "./Settings";
 import CategorywisePromotion from "./CategorywisePromotion";
 import NearbyPromotion from "./NearbyPromotion";
 import MediaPartner from "./MediaPartner";
-import { Text } from "react-native-gesture-handler";
+import Login from "./Login"; // Import Login screen
 
 const Tab = createBottomTabNavigator();
 
-const BottomTabs = () => {
+const BottomTabs = ({ navigation }) => {
+  const { user } = useContext(AuthContext);
+
+  // Function to handle restricted navigation
+  const handleRestrictedNavigation = (navigation, screenName) => {
+    if (!user) {
+      Alert.alert("Restricted Access", "You need to log in.");
+      navigation.navigate("Login"); // Redirect to Login screen
+      return;
+    }
+    navigation.navigate(screenName); // Navigate to the requested screen
+  };
+  
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -39,11 +53,7 @@ const BottomTabs = () => {
             default:
               iconName = "question-circle";
           }
-<<<<<<< HEAD
-          return <FontAwesome name={iconName} size={20} color={color} />;
-=======
           return <FontAwesome name={iconName} size={30} color={color} />;
->>>>>>> 10ccca07ec1e523dcdb02dbaab9e737c75d1dac0
         },
         tabBarActiveTintColor: "#aa336a",
         tabBarInactiveTintColor: "#000",
@@ -51,9 +61,52 @@ const BottomTabs = () => {
       })}
     >
       <Tab.Screen name="Home" component={Home} options={{ headerShown: false }} />
-      <Tab.Screen name="CategorywisePromotion" component={CategorywisePromotion} options={{ headerShown: false }} />
-      <Tab.Screen name="NearbyPromotion" component={NearbyPromotion} options={{ headerShown: false }} />
-      <Tab.Screen name="MediaPartner" component={MediaPartner} options={{ headerShown: false }} />
+
+      <Tab.Screen
+        name="CategorywisePromotion"
+        component={user ? CategorywisePromotion : Login}
+        options={{ headerShown: false }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            if (!user) {
+              e.preventDefault();
+              handleRestrictedNavigation(navigation, "CategorywisePromotion");
+            }
+          },
+        })}
+        
+      />
+
+      <Tab.Screen
+        name="NearbyPromotion"
+        component={user ? NearbyPromotion : Login}
+        options={{ headerShown: false }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            if (!user) {
+              e.preventDefault();
+              handleRestrictedNavigation(navigation, "NearbyPromotion");
+            }
+          },
+        })}
+        
+      />
+
+      <Tab.Screen
+        name="MediaPartner"
+        component={user ? MediaPartner : Login}
+        options={{ headerShown: false }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            if (!user) {
+              e.preventDefault();
+              handleRestrictedNavigation(navigation, "MediaPartner");
+            }
+          },
+        })}
+        
+      />
+
       <Tab.Screen name="Settings" component={Settings} options={{ headerShown: true }} />
     </Tab.Navigator>
   );
@@ -69,9 +122,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     height: 60,
   },
-  tabBarText:{
-    fontSize:20
-  }
 });
 
 export default BottomTabs;

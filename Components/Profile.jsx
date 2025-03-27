@@ -10,6 +10,7 @@ import {
   StyleSheet,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
+import LinearGradient from 'react-native-linear-gradient';
 
 import {AuthContext} from './AuthContext';
 import axios from 'axios';
@@ -214,7 +215,7 @@ const Profile = () => {
   return (
     <View style={styles.container}>
     {/* Header Section */}
-    <View style={styles.header}>
+    <LinearGradient colors={['#FF69B4', '#FFFFFF']} style={styles.header}>
    
 
       {/* Profile Image */}
@@ -237,7 +238,7 @@ const Profile = () => {
           <Text style={styles.statsText}>Referral Count</Text>
         </View>
       </View>
-    </View>
+        </LinearGradient>
 
     {/* Contact Information */}
     <ScrollView style={styles.infoSection}>
@@ -339,8 +340,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E3CFF",
     alignItems: "center",
     paddingVertical: 30,
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
   backIcon: { position: "absolute", left: 20, top: 15 },
   settingsIcon: { position: "absolute", right: 20, top: 15 },
@@ -349,13 +350,13 @@ const styles = StyleSheet.create({
   
   statsContainer: { flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 10 },
   statBox: { alignItems: "center", paddingHorizontal: 20 },
-  statsNumber: { fontSize: 18, fontWeight: "bold", color: "#fff" },
-  statsText: { fontSize: 14, color: "#fff" },
-  divider: { height: 30, width: 2, backgroundColor: "#fff", marginHorizontal: 10 },
+  statsNumber: { fontSize: 18, fontWeight: "bold" },
+  statsText: { fontSize: 14, },
+  divider: { height: 30, width: 2, backgroundColor: "black", marginHorizontal: 10 },
 
   infoSection: { padding: 20 },
   infoRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#ddd" },
-  infoText: { marginLeft: 15, fontSize: 16, color: "#333" },
+  infoText: { marginLeft: 15, fontSize: 16, },
 
   fixedButtonContainer: { position: "absolute", bottom: 20, alignSelf: "center" },
   openModalButton: { backgroundColor: "#ff4081", padding: 10, borderRadius: 5 },
