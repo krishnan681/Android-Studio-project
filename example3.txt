@@ -1,0 +1,1701 @@
+orignall
+
+
+import React, { useEffect, useState, useContext } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+  Linking,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
+import { AuthContext } from "./AuthContext";
+import axios from "axios";
+
+export default function ProductSms() {
+  const { user, userData } = useContext(AuthContext);
+  const [data, setData] = useState([]);
+  const [productInput, setProductInput] = useState("");
+  const [selectedClients, setSelectedClients] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const maxLength = 290;
+  const [customMessage, setCustomMessage] = useState(
+    "I Saw Your Listing in SIGNPOST PHONE BOOK. I am Interested in your Products. Please Send Details/Call Me. (Sent Through Signpost PHONE BOOK)"
+  );
+
+  // Fetch all data initially (optional)
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(
+        "https://signpostphonebook.in/client_fetch.php"
+      );
+      if (Array.isArray(response.data)) {
+        setData(response.data.sort((a, b) => b.id - a.id));
+      } else {
+        Alert.alert("Error", "Unexpected response from server.");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to load data: " + error.message);
+    }
+  };
+
+  // Fetch filtered product data
+  const fetchProductData = async (name) => {
+    if (!name) return;
+    try {
+      const response = await axios.get(
+        `https://signpostphonebook.in/client_fetch_product.php?product=${name}`
+      );
+      if (Array.isArray(response.data)) {
+        setData(response.data);
+        setShowResults(true);
+      } else {
+        Alert.alert("Error", "Unexpected response from server.");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to load product data: " + error.message);
+    }
+  };
+
+  const handleSearch = () => {
+    if (productInput) {
+      fetchProductData(productInput);
+    } else {
+      Alert.alert("Search Error", "Please enter a product name.");
+    }
+  };
+
+  const handleClear = () => {
+    setProductInput("");
+    setSelectAll(false);
+    setSelectedClients([]);
+    setShowResults(false);
+  };
+
+  const handleCheckboxChange = (client) => {
+    setSelectedClients((prev) =>
+      prev.includes(client)
+        ? prev.filter((item) => item !== client)
+        : [...prev, client]
+    );
+  };
+
+  const handleSelectAllChange = () => {
+    if (selectAll) {
+      setSelectedClients([]);
+    } else {
+      setSelectedClients(data);
+    }
+    setSelectAll(!selectAll);
+  };
+
+  const sendSMS = () => {
+    if (selectedClients.length === 0) {
+      Alert.alert("No Clients Selected", "Please select at least one client.");
+      return;
+    }
+  
+    const currentDate = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+    console.log("Current Date:", currentDate); // Debugging
+  
+    const postData = {
+      user_name: userData?.bussinessname || userData?.person || "Unknown",
+      date: currentDate,
+      pincode: "",
+      product: productInput.trim(),
+      promotion_from: "CategoryWise Promotion",
+      selected_count: selectedClients.length,
+    };
+  
+    console.log("Post Data:", postData); // Debugging
+  
+    axios
+      .post(
+        "https://signpostphonebook.in/promotion_app/promotion_appliaction.php",
+        postData
+      )
+      .then((response) => {
+        console.log("Response Data:", response.data);
+        if (response.data.success) {
+          Alert.alert("Success", "Promotion data saved successfully.");
+        } else {
+          Alert.alert("Error", response.data.message || "Unknown error occurred.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error sending data:", error);
+        Alert.alert("Error", "Failed to send data to the server.");
+      });
+  
+    const mobileNumbers = selectedClients.map((client) => client.mobileno).join(",");
+    const smsUri = `sms:${mobileNumbers}?body=${encodeURIComponent(customMessage)}`;
+  
+    Linking.openURL(smsUri).catch((err) =>
+      Alert.alert("Error", "Failed to open SMS application.")
+    );
+  };
+  
+
+  return (
+    <ScrollView style={styles.container}>
+      <Text
+        style={{
+          fontSize: 25,
+          fontWeight: "bold",
+          // marginBottom: 10,
+          color: "#6a0dad",
+          textAlign: "center",
+        }}
+      >
+        CATEGORYWISE PROMOTION
+      </Text>
+
+      <Text
+        style={{
+          // marginTop: 10,
+          lineHeight: 30,
+          fontSize: 16,
+          textAlign: "justify",
+        }}
+      >
+        Send messages to mobile users dealing in a specific product.{"\n"}
+        1. First edit / create message to be sent. Minimum 1 Count (145
+        characters),Maximum 2 counts (290 characters){"\n"}
+        2. Type specific Category / product /keyword{"\n"}
+        3. For error free delivery of messages, send in batches 10 each time.
+        {"\n"}
+      </Text>
+
+      <Text style={{ fontWeight: "bold", marginTop: 10, fontSize: 16 }}>
+        Edit / Create Message:
+      </Text>
+      <TextInput
+        style={{
+          borderWidth: 1,
+          // padding: 15,
+          borderRadius: 5,
+          marginBottom: 10,
+          fontSize: 16,
+          lineHeight: 25,
+        }}
+        value={customMessage}
+        onChangeText={setCustomMessage}
+        multiline
+        maxLength={maxLength}
+      />
+      <Text style={styles.charCount}>
+        {maxLength - customMessage.length} / {maxLength}
+      </Text>
+
+      <Text
+        style={{
+          fontWeight: "bold",
+          // marginTop: 10,
+          fontSize: 16,
+        }}
+      >
+        Category:
+      </Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Type product name..."
+        value={productInput}
+        onChangeText={setProductInput}
+      />
+
+      <View style={styles.buttonRow}>
+        <TouchableOpacity style={styles.button} onPress={handleSearch}>
+          <Text style={styles.buttonText}>Search</Text>
+        </TouchableOpacity>
+        {showResults && (
+          <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
+            <Text style={styles.buttonText}>Clear</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {showResults && (
+        <>
+          <Text style={{ fontSize: 16, color: "#333" }}>
+            <Text style={{ fontWeight: "bold" }}>Results Displayed:</Text>{" "}
+            {data.length}
+          </Text>
+          <View style={styles.checkboxRow}>
+            <Text style={styles.checkboxLabel}>Select All</Text>
+            <TouchableOpacity onPress={handleSelectAllChange}>
+              <Text style={styles.checkbox}>{selectAll ? "☑" : "☐"}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <FlatList
+            style={{ marginTop: 10}}
+            data={data}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>{item.businessname}</Text>
+                <Text>{item.product}</Text>
+                <View style={styles.checkboxRow}>
+                  <Text>{item.mobileno.slice(0, -5)}xxxxx</Text>
+                  <TouchableOpacity onPress={() => handleCheckboxChange(item)}>
+                    <Text style={styles.checkbox}>
+                      {selectedClients.includes(item) ? "☑" : "☐"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          />
+
+          <TouchableOpacity style={styles.button} onPress={sendSMS}>
+            <Text style={styles.buttonText}>Send SMS</Text>
+          </TouchableOpacity>
+        </>
+      )}
+    </ScrollView>
+  );
+}
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 15,
+    backgroundColor: "#f9f9f9",
+  },
+  charCount: {
+    alignSelf: "flex-end",
+    marginBottom: 10,
+    fontSize: 14,
+    color: "#555",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 12,
+    borderRadius: 8,
+    fontSize: 16,
+    backgroundColor: "#fff",
+    marginBottom: 15,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  button: {
+    flex: 1,
+    backgroundColor: "#007BFF",
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginHorizontal: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  clearButton: {
+    flex: 1,
+    backgroundColor: "#FF4500",
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginHorizontal: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  checkboxRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 6,
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  checkbox: {
+    fontSize: 22,
+    color: "#333",
+  },
+  card: {
+    backgroundColor: "white",
+    padding: 12,
+    marginVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 4,
+  },
+  fixedButtonContainer: {
+    position: "absolute",
+    bottom: 15,
+    left: 15,
+    right: 15,
+    backgroundColor: "#6a0dad",
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 6,
+  },
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  FlatList,
+  Image,
+  StyleSheet,
+  Platform,
+} from "react-native";
+import LinearGradient from "react-native-linear-gradient";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+
+const CategoryPromotionScreen = ({ navigation, userData }) => {
+  const [customMessage, setCustomMessage] = useState("");
+  const [productInput, setProductInput] = useState("");
+  const [data, setData] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [selectedClients, setSelectedClients] = useState([]);
+
+  const maxLength = 290;
+
+  const handleSearch = () => {
+    // Your search logic
+  };
+
+  const handleClear = () => {
+    setProductInput("");
+    setData([]);
+  };
+
+  const handleSelectAllChange = () => {
+    setSelectAll(!selectAll);
+  };
+
+  const sendSMS = () => {
+    // Your SMS sending logic
+  };
+
+  return (
+    <ScrollView style={styles.container}>
+      {/* HEADER WITH GRADIENT */}
+      <LinearGradient colors={["#FF69B4", "#FFFFFF"]} style={styles.header}>
+        <View style={styles.headerTop}></View>
+        {/* HEADER TITLE */}
+        <Text style={styles.headerTitle}>CATEGORYWISE PROMOTION</Text>
+      </LinearGradient>
+
+      {/* CONTENT SECTION */}
+      <View style={styles.contentContainer}>
+        <Text style={styles.description}>
+          Send messages to mobile users dealing in a specific product.{"\n"}
+          1. First edit / create a message to be sent (145 - 290 characters).{"\n"}
+          2. Type specific Category / product / keyword.{"\n"}
+          3. Send messages in batches of 10 for best delivery.
+        </Text>
+
+        <Text style={styles.sectionTitle}>Edit / Create Message:</Text>
+        <TextInput
+          style={styles.textArea}
+          value={customMessage}
+          onChangeText={setCustomMessage}
+          multiline
+          maxLength={maxLength}
+          placeholder="Type your message here..."
+        />
+        <Text style={styles.charCount}>
+          {maxLength - customMessage.length} / {maxLength}
+        </Text>
+
+        <Text style={styles.sectionTitle}>Category:</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Type product name..."
+          value={productInput}
+          onChangeText={setProductInput}
+        />
+
+        <View style={styles.buttonRow}>
+          <TouchableOpacity style={styles.button} onPress={handleSearch}>
+            <Text style={styles.buttonText}>Search</Text>
+          </TouchableOpacity>
+          {data.length > 0 && (
+            <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
+              <Text style={styles.buttonText}>Clear</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {data.length > 0 && (
+          <>
+            <Text style={styles.resultCount}>
+              <Text style={{ fontWeight: "bold" }}>Results Displayed:</Text> {data.length}
+            </Text>
+            <View style={styles.checkboxRow}>
+              <Text style={styles.checkboxLabel}>Select All</Text>
+              <TouchableOpacity onPress={handleSelectAllChange}>
+                <Text style={styles.checkbox}>{selectAll ? "☑" : "☐"}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <FlatList
+              data={data}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>{item.businessname}</Text>
+                  <Text>{item.product}</Text>
+                  <View style={styles.checkboxRow}>
+                    <Text>{item.mobileno.slice(0, -5)}xxxxx</Text>
+                    <TouchableOpacity onPress={() => handleCheckboxChange(item)}>
+                      <Text style={styles.checkbox}>
+                        {selectedClients.includes(item) ? "☑" : "☐"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            />
+
+            <TouchableOpacity style={styles.button} onPress={sendSMS}>
+              <Text style={styles.buttonText}>Send SMS</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f9f9f9",
+  },
+  header: {
+    padding: 20,
+    paddingTop: Platform.OS === "android" ? 30 : 50,
+  },
+  headerTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  welcomeText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#000",
+  },
+  iconGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  profileIconContainer: {
+    marginLeft: 15,
+  },
+  profileIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  headerTitle: {
+    fontSize: 25,
+    fontWeight: "bold",
+    color: "#AA336A",
+    textAlign: "center",
+    marginTop: 10,
+  },
+  contentContainer: {
+    padding: 15,
+  },
+  description: {
+    fontSize: 16,
+    textAlign: "justify",
+    lineHeight: 24,
+  },
+  sectionTitle: {
+    fontWeight: "bold",
+    fontSize: 16,
+    marginTop: 15,
+  },
+  textArea: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: "#fff",
+  },
+  charCount: {
+    textAlign: "right",
+    marginTop: 5,
+    fontSize: 14,
+    color: "#666",
+  },
+  button: {
+    backgroundColor: "#AA336A",
+    padding: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+});
+
+export default CategoryPromotionScreen;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, {useEffect, useState, useContext} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  FlatList,
+  Image,
+  StyleSheet,
+  Platform,
+  Alert,
+  Linking,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {AuthContext} from './AuthContext';
+import axios from 'axios';
+
+const CategoryPromotionScreen = () => {
+  const {user, userData} = useContext(AuthContext);
+  const [data, setData] = useState([]);
+  const [productInput, setProductInput] = useState('');
+  const [selectedClients, setSelectedClients] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [showresults, setShowresults] = useState(false);
+  const maxLength = 290;
+  const [customMessage, setCustomMessage] = useState(
+    'I Saw Your Listing in SIGNPOST PHONE BOOK. I am Interested in your Products. Please Send Details/Call Me. (Sent Through Signpost PHONE BOOK)',
+  );
+
+  // Fetch all data initially (optional)
+   const fetchData = async () => {
+    try {
+      const response = await fetch(
+        "https://signpostphonebook.in/client_fetch_for_new_database.php"
+      );
+      if (!response.ok) throw new Error(`HTTP Error! Status: ${response.status}`);
+
+      const jsonResponse = await response.json();
+      if (Array.isArray(jsonResponse)) {
+        setData(jsonResponse.sort((a, b) => b.id - a.id));
+      } else {
+        Alert.alert("Error", "Unexpected response from server.");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to load data: " + error.message);
+    }
+  };
+
+  // Fetch filtered product data
+  const fetchProductData = async (name) => {
+    if (!name) return;
+    try {
+      const response = await fetch(
+        `https://signpostphonebook.in/client_fetch_byproduct_for_new_database.php?product=${name}`
+      );
+      if (!response.ok) throw new Error(`HTTP Error! Status: ${response.status}`);
+
+      const jsonResponse = await response.json();
+      if (Array.isArray(jsonResponse)) {
+        setData(jsonResponse);
+      } else {
+        Alert.alert("Error", "Unexpected response from server.");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to load product data: " + error.message);
+    }
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (productInput) {
+      fetchProductData(productInput);
+      setShowresults(true);
+    } else fetchData();
+  };
+
+  const handleClear = () => {
+    setProductInput("");
+    setSelectAll(false);
+    setSelectedClients("");
+    setShowresults(false);
+  };
+
+  const handleProductChange = (value) => {
+    setProductInput(value);
+  };
+
+  const handleCityChange = (value) => {
+    setCityInput(value);
+  };
+
+  const handleCheckboxChange = (client) => {
+    setSelectedClients((prev) =>
+      prev.includes(client)
+        ? prev.filter((item) => item !== client)
+        : [...prev, client]
+    );
+  };
+
+  const handleSelectAllChange = () => {
+    if (selectAll) {
+      setSelectedClients([]);
+    } else {
+      setSelectedClients(data);
+    }
+    setSelectAll(!selectAll);
+  };
+
+
+  const sendSMS = () => {
+    if (selectedClients.length === 0) {
+      window.alert("No clients selected!");
+      return;
+    }
+  
+    const currentDate = new Date().toISOString().split("T")[0];
+  
+    const postData = {
+      user_name: userData.bussinessname || userData.person || "Unknown",
+      date: currentDate,
+      pincode: "",
+      product: productInput.trim(),
+      promotion_from: "CatagoryWise Promotion",
+      selected_count: selectedClients.length,
+    };
+  
+    axios
+      .post(
+        "https://signpostphonebook.in/promotion_app/promotion_appliaction.php",
+        postData
+      )
+      .then((response) => {
+        console.log(response.data.Message);
+      })
+      .catch((error) => console.error("Error sending data:", error));
+  
+    const mobileNumbers = selectedClients.map((client) => client.mobileno);
+    try {
+      const recipients = mobileNumbers.join(",");
+      const smsUri = `sms:${recipients}?body=${encodeURIComponent(customMessage)}`;
+      window.location.href = smsUri;
+    } catch (error) {
+      console.error("Error opening SMS application:", error.message);
+      window.alert(
+        "An error occurred while opening the SMS application. Please try again."
+      );
+    }
+  };
+
+  return (
+    <ScrollView style={styles.container}>
+      {/* HEADER WITH GRADIENT */}
+      <LinearGradient colors={['#FF69B4', '#FFFFFF']} style={styles.header}>
+        <View style={styles.headerTop}></View>
+        {/* HEADER TITLE */}
+        <Text style={styles.headerTitle}>CATEGORYWISE PROMOTION</Text>
+      </LinearGradient>
+
+      {/* CONTENT SECTION */}
+      <View style={styles.contentContainer}>
+        {/* INFO SECTION */}
+        <View style={styles.infoBox}>
+          <Text style={styles.infoText}>
+            Send messages to mobile users dealing in a specific product.
+          </Text>
+          <Text style={styles.bulletText}>
+            ● First edit / create message to be sent. Minimum 1 Count (145
+            characters),Maximum 2 counts (290 characters)
+          </Text>
+          <Text style={styles.bulletText}>
+            ● Type specific Category / product /keyword
+          </Text>
+          <Text style={styles.bulletText}>
+            ● For error free delivery of messages, send in batches 10 each time.
+          </Text>
+        </View>
+
+        {/* MESSAGE INPUT */}
+        <Text style={styles.inputLabel}>Edit / Create Message:</Text>
+        <TextInput
+          style={styles.messageInput}
+          placeholder="Type your message here..."
+          value={customMessage}
+          onChangeText={setCustomMessage}
+          multiline
+          maxLength={maxLength}
+        />
+        <Text style={styles.charCount}>
+          {maxLength - customMessage.length} / {maxLength}
+        </Text>
+
+        <Text style={styles.inputLabel}>Category:</Text>
+        <TextInput
+          style={styles.inputField}
+          placeholder="Type product name..."
+          value={productInput}
+          onChangeText={setProductInput}
+        />
+
+        <View style={styles.buttonRow}>
+          <TouchableOpacity style={styles.button} onPress={handleSearch}>
+            <Text style={styles.buttonText}>Search</Text>
+          </TouchableOpacity>
+          {data.length > 0 && (
+            <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
+              <Text style={styles.buttonText}>Clear</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {data.length > 0 && (
+          <>
+            <Text style={styles.resultCount}>
+              <Text style={{fontWeight: 'bold'}}>Results Displayed:</Text>{' '}
+              {data.length}
+            </Text>
+            <View style={styles.checkboxRow}>
+              <Text style={styles.checkboxLabel}>Select All</Text>
+              <TouchableOpacity onPress={handleSelectAllChange}>
+                <Text style={styles.checkbox}>{selectAll ? '☑' : '☐'}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <FlatList
+              data={data}
+              keyExtractor={item => item.id.toString()}
+              renderItem={({item}) => (
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>{item.businessname}</Text>
+                  <Text>{item.product}</Text>
+                  <View style={styles.checkboxRow}>
+                    <Text>{item.mobileno.slice(0, -5)}xxxxx</Text>
+                    <TouchableOpacity
+                      onPress={() => handleCheckboxChange(item)}>
+                      <Text style={styles.checkbox}>
+                        {selectedClients.includes(item) ? '☑' : '☐'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            />
+
+            <TouchableOpacity style={styles.button} onPress={sendSMS}>
+              <Text style={styles.buttonText}>Send SMS</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+  },
+  header: {
+    padding: 20,
+    paddingTop: Platform.OS === 'android' ? 30 : 50,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  headerTitle: {
+    fontSize: 25,
+    fontWeight: 'bold',
+    color: '#AA336A',
+    textAlign: 'center',
+    marginTop: 10,
+  },
+
+  infoBox: {
+    backgroundColor: '#FAF3FF',
+    padding: 22,
+    borderRadius: 10,
+    marginBottom: 1,
+    borderWidth: 1,
+    borderColor: '#E6C8FF',
+  },
+  infoText: {
+    fontSize: 19,
+    fontWeight: '600',
+    color: '#4A4A4A',
+    marginBottom: 8,
+  },
+  bulletText: {
+    fontSize: 14,
+    color: '#4A4A4A',
+    marginBottom: 5,
+  },
+
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  messageInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 8,
+    fontSize: 16,
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  charCount: {
+    alignSelf: 'flex-end',
+    fontSize: 14,
+    color: '#555',
+    marginBottom: 10,
+  },
+  contentContainer: {
+    padding: 15,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 10,
+    paddingHorizontal: 10,
+  },
+  button: {
+    backgroundColor: '#007BFF',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  clearButton: {
+    backgroundColor: '#DC3545',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  resultCount: {
+    fontSize: 16,
+    color: '#333',
+    marginHorizontal: 10,
+    marginBottom: 10,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  checkbox: {
+    fontSize: 20,
+    color: '#007BFF',
+  },
+
+  inputField: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 8,
+    fontSize: 16,
+    marginBottom: 15,
+  },
+  button: {
+    backgroundColor: '#AA336A',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  card: {
+    backgroundColor: '#fff',
+    padding: 15,
+    marginVertical: 8,
+    marginHorizontal: 10,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  checkbox: {
+    fontSize: 20,
+    color: '#007BFF',
+  },
+});
+
+export default CategoryPromotionScreen;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, {useEffect, useState, useContext} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  FlatList,
+  Image,
+  StyleSheet,
+  Platform,
+  Alert,
+  Linking,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import {AuthContext} from './AuthContext';
+import axios from 'axios';
+
+const CategoryPromotionScreen = () => {
+  const {user, userData} = useContext(AuthContext);
+  const [data, setData] = useState([]);
+  const [productInput, setProductInput] = useState('');
+  const [selectedClients, setSelectedClients] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [showresults, setShowresults] = useState(false);
+  const maxLength = 290;
+  const [customMessage, setCustomMessage] = useState(
+    'I Saw Your Listing in SIGNPOST PHONE BOOK. I am Interested in your Products. Please Send Details/Call Me. (Sent Through Signpost PHONE BOOK)',
+  );
+
+  // Fetch filtered product data
+  const fetchProductData = async (name) => {
+    if (!name) return;
+    try {
+      const response = await fetch(
+        `https://signpostphonebook.in/client_fetch_product.php?product=${name}`
+      );
+      if (!response.ok) throw new Error(`HTTP Error! Status: ${response.status}`);
+
+      const jsonResponse = await response.json();
+      if (Array.isArray(jsonResponse)) {
+        setData(jsonResponse);
+      } else {
+        Alert.alert("Error", "Unexpected response from server.");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to load product data: " + error.message);
+    }
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (productInput) {
+      fetchProductData(productInput);
+      setShowresults(true);
+    } else fetchData();
+  };
+
+  const handleClear = () => {
+    setProductInput("");
+    setCustomMessage(""); // Clears the message input
+    setSelectAll(false);
+    setSelectedClients("");
+    setShowresults(false);
+    setData([]); // Clears the fetched data (removes cards)
+  };
+  
+
+  const handleCheckboxChange = (client) => {
+    setSelectedClients((prev) =>
+      prev.includes(client)
+        ? prev.filter((item) => item !== client)
+        : [...prev, client]
+    );
+  };
+
+  const handleSelectAllChange = () => {
+    if (selectAll) {
+      setSelectedClients([]);
+    } else {
+      setSelectedClients(data);
+    }
+    setSelectAll(!selectAll);
+  };
+
+
+  const sendSMS = () => {
+    if (selectedClients.length === 0) {
+      window.alert("No clients selected!");
+      return;
+    }
+  
+    const currentDate = new Date().toISOString().split("T")[0];
+  
+    const postData = {
+      user_name: userData.bussinessname || userData.person || "Unknown",
+      date: currentDate,
+      pincode: "",
+      product: productInput.trim(),
+      promotion_from: "CatagoryWise Promotion",
+      selected_count: selectedClients.length,
+    };
+  
+    axios
+      .post(
+        "https://signpostphonebook.in/promotion_app/promotion_appliaction.php",
+        postData
+      )
+      .then((response) => {
+        console.log(response.data.Message);
+      })
+      .catch((error) => console.error("Error sending data:", error));
+  
+    const mobileNumbers = selectedClients.map((client) => client.mobileno);
+    try {
+      const recipients = mobileNumbers.join(",");
+      const smsUri = `sms:${recipients}?body=${encodeURIComponent(customMessage)}`;
+      window.location.href = smsUri;
+    } catch (error) {
+      console.error("Error opening SMS application:", error.message);
+      window.alert(
+        "An error occurred while opening the SMS application. Please try again."
+      );
+    }
+  };
+
+  return (
+    <ScrollView style={styles.container}>
+      {/* HEADER WITH GRADIENT */}
+      <LinearGradient colors={['#FF69B4', '#FFFFFF']} style={styles.header}>
+        <View style={styles.headerTop}></View>
+        {/* HEADER TITLE */}
+        <Text style={styles.headerTitle}>CATEGORYWISE PROMOTION</Text>
+      </LinearGradient>
+
+      {/* CONTENT SECTION */}
+      <View style={styles.contentContainer}>
+        {/* INFO SECTION */}
+        <View style={styles.infoBox}>
+          <Text style={styles.infoText}>
+            Send messages to mobile users dealing in a specific product.
+          </Text>
+          <Text style={styles.bulletText}>
+            ● First edit / create message to be sent. Minimum 1 Count (145
+            characters),Maximum 2 counts (290 characters)
+          </Text>
+          <Text style={styles.bulletText}>
+            ● Type specific Category / product /keyword
+          </Text>
+          <Text style={styles.bulletText}>
+            ● For error free delivery of messages, send in batches 10 each time.
+          </Text>
+        </View>
+
+        {/* MESSAGE INPUT */}
+        <Text style={styles.inputLabel}>Edit / Create Message:</Text>
+        <TextInput
+          style={styles.messageInput}
+          placeholder="Type your message here..."
+          value={customMessage}
+          onChangeText={setCustomMessage}
+          multiline
+          maxLength={maxLength}
+        />
+        <Text style={styles.charCount}>
+          {maxLength - customMessage.length} / {maxLength}
+        </Text>
+
+        <Text style={styles.inputLabel}>Category:</Text>
+        <TextInput
+          style={styles.inputField}
+          placeholder="Type product name..."
+          value={productInput}
+          onChangeText={setProductInput}
+        />
+
+        <View style={styles.buttonRow}>
+          <TouchableOpacity style={styles.button} onPress={handleSearch}>
+            <Text style={styles.buttonText}>Search</Text>
+          </TouchableOpacity>
+          {data.length > 0 && (
+            <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
+              <Text style={styles.buttonText}>Clear</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {data.length > 0 && (
+          <>
+            <Text style={styles.resultCount}>
+              <Text style={{fontWeight: 'bold'}}>Results Displayed:</Text>{' '}
+              {data.length}
+            </Text>
+            <View style={styles.checkboxRow}>
+              <Text style={styles.checkboxLabel}>Select All</Text>
+              <TouchableOpacity onPress={handleSelectAllChange}>
+                <Text style={styles.checkbox}>{selectAll ? '☑' : '☐'}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <FlatList
+              data={data}
+              keyExtractor={item => item.id.toString()}
+              renderItem={({item}) => (
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>{item.businessname}</Text>
+                  <Text>{item.product}</Text>
+                  <View style={styles.checkboxRow}>
+                    <Text>{item.mobileno.slice(0, -5)}xxxxx</Text>
+                    <TouchableOpacity
+                      onPress={() => handleCheckboxChange(item)}>
+                      <Text style={styles.checkbox}>
+                        {selectedClients.includes(item) ? '☑' : '☐'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            />
+
+            <TouchableOpacity style={styles.button} onPress={sendSMS}>
+              <Text style={styles.buttonText}>Send SMS</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+  },
+  header: {
+    padding: 20,
+    paddingTop: Platform.OS === 'android' ? 30 : 50,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  headerTitle: {
+    fontSize: 25,
+    fontWeight: 'bold',
+    color: '#AA336A',
+    textAlign: 'center',
+    marginTop: 10,
+  },
+
+  infoBox: {
+    backgroundColor: '#FAF3FF',
+    padding: 22,
+    borderRadius: 10,
+    marginBottom: 1,
+    borderWidth: 1,
+    borderColor: '#E6C8FF',
+  },
+  infoText: {
+    fontSize: 19,
+    fontWeight: '600',
+    color: '#4A4A4A',
+    marginBottom: 8,
+  },
+  bulletText: {
+    fontSize: 14,
+    color: '#4A4A4A',
+    marginBottom: 5,
+  },
+
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  messageInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 8,
+    fontSize: 16,
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  charCount: {
+    alignSelf: 'flex-end',
+    fontSize: 14,
+    color: '#555',
+    marginBottom: 10,
+  },
+  contentContainer: {
+    padding: 15,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 10,
+    paddingHorizontal: 10,
+  },
+  button: {
+    backgroundColor: '#007BFF',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  clearButton: {
+    backgroundColor: '#DC3545',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  resultCount: {
+    fontSize: 16,
+    color: '#333',
+    marginHorizontal: 10,
+    marginBottom: 10,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  checkbox: {
+    fontSize: 20,
+    color: '#007BFF',
+  },
+
+  inputField: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 8,
+    fontSize: 16,
+    marginBottom: 15,
+  },
+  button: {
+    backgroundColor: '#AA336A',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  card: {
+    backgroundColor: '#fff',
+    padding: 15,
+    marginVertical: 8,
+    marginHorizontal: 10,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  checkbox: {
+    fontSize: 20,
+    color: '#007BFF',
+  },
+});
+
+export default CategoryPromotionScreen;
