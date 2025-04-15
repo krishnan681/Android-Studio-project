@@ -1,13 +1,30 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useState, useEffect } from "react";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
 
-// Create the AuthContext
+// Create Auth Context
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState("");
   const [userData, setUserData] = useState("");
+  const [favorites, setFavorites] = useState({ Supplier: [], Buyer: [], Firms: [] });
+
+  // Function to load favorites for the logged-in user
+  const loadFavorites = async (mobileNumber) => {
+    if (!mobileNumber) return;
+
+    try {
+      const allFavorites = await AsyncStorage.getItem("favorites");
+      const parsedFavorites = allFavorites ? JSON.parse(allFavorites) : {};
+      
+      // Set favorites for the logged-in user without clearing them on logout
+      setFavorites(parsedFavorites[mobileNumber] || { Supplier: [], Buyer: [], Firms: [] });
+    } catch (error) {
+      console.error("Error loading favorites:", error);
+    }
+  };
 
   // Login Function
   const Login = async (username, password, navigation) => {
@@ -30,6 +47,10 @@ export const AuthProvider = ({ children }) => {
       if (response.data.valid) {
         setUser(response.data.businessname || response.data.person);
         setUserData(response.data);
+
+        // Load favorites for this user (persistent across logins)
+        loadFavorites(response.data.mobileno);
+
         navigation.navigate("Home");
       } else {
         Alert.alert("User Not Found", "Please sign up.");
@@ -41,7 +62,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout Function
+  // Logout Function (Do NOT clear favorites)
   const logout = (navigation) => {
     setUser("");
     setUserData("");
@@ -49,7 +70,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, userData, setUserData, Login, logout }}>
+    <AuthContext.Provider value={{ user, userData, favorites, setFavorites, setUserData, Login, logout }}>
       {children}
     </AuthContext.Provider>
   );

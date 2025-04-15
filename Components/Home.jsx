@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -13,10 +13,10 @@ import {
   ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
-import {AuthContext, AuthProvider} from './AuthContext';
+import { AuthContext } from './AuthContext';
 import axios from 'axios';
 import Skeleton from './Skeleton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -32,12 +32,11 @@ const Home = route => {
   const [profileImage, setProfileImage] = useState(null);
   const [activeInput, setActiveInput] = useState(null);
 
-  const {user, userData} = useContext(AuthContext);
+  const { user, userData, favorites, setFavorites } = useContext(AuthContext);
   const [modalVisible, setModalVisible] = useState(false);
   const navigation = useNavigation();
 
   const [message, setMessage] = useState('');
-
   const [favoriteModalVisible, setFavoriteModalVisible] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
 
@@ -46,9 +45,9 @@ const Home = route => {
       setMessage(
         `Dear ${
           selectedItem.businessname || selectedItem.person
-        }, We refer to your Business Listing in Signpost PHONEBOOOK, Mobile App. We are intersted in your Products. Please send Details. Call me 
+        }, We refer to your Business Listing in Signpost PHONEBOOK, Mobile App. We are interested in your Products. Please send Details. Call me 
         Regards ${userData.businessname || userData.person}
-        ${userData.mobileno || userData.email}`,
+        ${userData.mobileno || userData.email}`
       );
     }
   }, [modalVisible, selectedItem]);
@@ -56,7 +55,7 @@ const Home = route => {
   const handleFavoritePress = () => {
     if (!user) {
       Alert.alert('Login Required', 'You need to log in to add to favorites.', [
-        {text: 'OK', onPress: () => navigation.navigate('Login')},
+        { text: 'OK', onPress: () => navigation.navigate('Login') },
       ]);
       return;
     }
@@ -67,21 +66,24 @@ const Home = route => {
     setSelectedCategories(prev =>
       prev.includes(category)
         ? prev.filter(item => item !== category)
-        : [...prev, category],
+        : [...prev, category]
     );
   };
 
   const handleSaveFavorite = async () => {
-    if (!selectedItem || selectedCategories.length === 0) return;
+    if (!selectedItem || selectedCategories.length === 0 || !userData?.mobileno) return;
 
     try {
-      const storedFavorites = await AsyncStorage.getItem('favorites');
-      let currentFavorites = storedFavorites
-        ? JSON.parse(storedFavorites)
-        : {Supplier: [], Buyer: [], Firms: []};
+      const allFavorites = await AsyncStorage.getItem('favorites');
+      let parsedFavorites = allFavorites ? JSON.parse(allFavorites) : {};
+
+      let userFavorites = parsedFavorites[userData.mobileno] || {
+        Supplier: [],
+        Buyer: [],
+        Firms: [],
+      };
 
       selectedCategories.forEach(category => {
-        // Ensure we save all necessary details for proper display
         const fullItem = {
           id: selectedItem.id,
           businessname: selectedItem.businessname || '',
@@ -92,25 +94,24 @@ const Home = route => {
           mobileno: selectedItem.mobileno || '',
         };
 
-        if (
-          !currentFavorites[category].some(item => item.id === selectedItem.id)
-        ) {
-          currentFavorites[category].push(fullItem);
+        if (!userFavorites[category].some(item => item.id === selectedItem.id)) {
+          userFavorites[category].push(fullItem);
         }
       });
 
-      await AsyncStorage.setItem('favorites', JSON.stringify(currentFavorites));
-      console.log('Saved:', currentFavorites);
+      parsedFavorites[userData.mobileno] = userFavorites;
+      await AsyncStorage.setItem('favorites', JSON.stringify(parsedFavorites));
 
-      // Close modal
+      setFavorites(userFavorites);
+      setSelectedCategories([]); // Clear selected categories after saving
       setFavoriteModalVisible(false);
-
-      // Show success message
       Alert.alert('Success', 'Added to favorites successfully!');
     } catch (error) {
       console.error('Error saving favorite:', error);
     }
   };
+
+
 
   const handleEnquiryPress = item => {
     if (!user) {
@@ -505,51 +506,48 @@ const Home = route => {
       {/* Second modal */}
 
       <Modal
-        visible={favoriteModalVisible}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setFavoriteModalVisible(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            {/* Close Button (X) */}
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setFavoriteModalVisible(false)}>
-              <MaterialIcons name="close" size={24} color="black" />
-            </TouchableOpacity>
+  visible={favoriteModalVisible}
+  animationType="slide"
+  transparent
+  onRequestClose={() => setFavoriteModalVisible(false)}>
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalBox}>
+      {/* Close Button (X) */}
+      <TouchableOpacity
+        style={styles.closeButton}
+        onPress={() => setFavoriteModalVisible(false)}>
+        <MaterialIcons name="close" size={24} color="black" />
+      </TouchableOpacity>
 
-            <Text style={styles.modalHeading}>Add to Favorites</Text>
+      <Text style={styles.modalHeading}>Add to Favorites</Text>
 
-            {['Supplier', 'Buyer', 'Firms'].map(category => (
-              <TouchableOpacity
-                key={category}
-                style={styles.checkboxRow}
-                onPress={() => toggleCategory(category)}>
-                <MaterialIcons
-                  name={
-                    selectedCategories.includes(category)
-                      ? 'check-box'
-                      : 'check-box-outline-blank'
-                  }
-                  size={24}
-                  color="red"
-                />
-                <Text style={styles.checkboxLabel}>{category}</Text>
-              </TouchableOpacity>
-            ))}
+      {['Supplier', 'Buyer', 'Firms'].map(category => (
+        <TouchableOpacity
+          key={category}
+          style={styles.radioRow}
+          onPress={() => setSelectedCategories([category])}> {/* Ensure only one is selected */}
+          <FontAwesome
+            name={selectedCategories.includes(category) ? 'dot-circle-o' : 'circle-o'}
+            size={24}
+            color="red"
+          />
+          <Text style={styles.radioLabel}>{category}</Text>
+        </TouchableOpacity>
+      ))}
 
-            <TouchableOpacity
-              style={[
-                styles.confirmButton,
-                selectedCategories.length === 0 && styles.disabledButton,
-              ]}
-              onPress={handleSaveFavorite}
-              disabled={selectedCategories.length === 0}>
-              <Text style={styles.confirmButtonText}>Save</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      <TouchableOpacity
+        style={[
+          styles.confirmButton,
+          selectedCategories.length === 0 && styles.disabledButton,
+        ]}
+        onPress={handleSaveFavorite}
+        disabled={selectedCategories.length === 0}>
+        <Text style={styles.confirmButtonText}>Save</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
     </View>
   );
 };
@@ -822,16 +820,14 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     color: '#333',
   },
-  checkboxRow: {
+  radioRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    width: '100%',
+    marginVertical: 10,
   },
-  checkboxLabel: {
+  radioLabel: {
     fontSize: 16,
     marginLeft: 10,
-    color: '#444',
   },
   confirmButton: {
     marginTop: 15,
